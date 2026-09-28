@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX — Health Data Comparison</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    .comparison-tabs {
+      display: flex;
+      gap: 8px;
+      background: var(--card-bg);
+      padding: 6px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow);
+    }
+    .comparison-tab {
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      background: transparent;
+      color: var(--gray-500);
+    }
+    .comparison-tab.active {
+      background: var(--lime);
+      color: var(--dark);
+    }
+    .compare-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .compare-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .compare-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+    }
+    .compare-card.sleep::before { background: #2563EB; }
+    .compare-card.water::before { background: #2563EB; }
+    .compare-card.activity::before { background: #101820; }
+    .compare-card.mood::before { background: #D97706; }
+    .compare-card.hr::before { background: #DC2626; }
+    .compare-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    .compare-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .compare-value {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .compare-big {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+    .compare-unit {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+    .compare-change {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    .compare-change.up { color: #16A34A; }
+    .compare-change.down { color: #F04E23; }
+    .compare-change.neutral { color: var(--gray-400); }
+    .compare-mini-chart {
+      height: 60px;
+      margin-top: 12px;
+    }
+    .compare-detail {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+    .compare-detail h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .chart-container {
+      position: relative;
+      height: 200px;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text"><h1>ArogyaX</h1><span>Comparison</span></div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn"><i data-lucide="heart" style="width:16px;height:16px"></i></button>
+      <button class="icon-btn"><i data-lucide="sparkles" style="width:16px;height:16px"></i></button>
+      <button class="date-pill">
+        <i data-lucide="bell" style="width:14px;height:14px"></i>
+        <span>Sat, 26 Aug</span>
+        <span class="badge-count">5</span>
+      </button>
+      <div class="hamburger"><i data-lucide="menu" style="width:18px;height:18px"></i></div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-item" id="nav-home">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/page/chat" class="sidebar-item" id="nav-ai-chat">
+      <i data-lucide="message-circle"></i>
+      <span>AI Chat</span>
+    </a>
+    <a href="/page/analytics" class="sidebar-item" id="nav-analytics">
+      <i data-lucide="bar-chart-2"></i>
+      <span>Analytics</span>
+    </a>
+    <a href="/page/comparison" class="sidebar-item active" id="nav-comparison">
+      <i data-lucide="git-compare"></i>
+      <span>Comparison</span>
+    </a>
+    <a href="/page/knowledge" class="sidebar-item" id="nav-knowledge">
+      <i data-lucide="book-open"></i>
+      <span>Knowledge</span>
+    </a>
+    <a href="/page/reports" class="sidebar-item" id="nav-reports">
+      <i data-lucide="file-text"></i>
+      <span>Reports</span>
+    </a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <a href="/page/settings" class="sidebar-item" id="nav-settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div class="section-header">
+        <div class="section-icon">
+          <i data-lucide="git-compare" style="width:20px;height:20px"></i>
+        </div>
+        <div>
+          <h2 class="section-title">Health Data Comparison</h2>
+          <p class="section-subtitle">See how your health metrics are trending compared to the previous period</p>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="comparison-tabs">
+          <button class="comparison-tab active" data-period="7">7 Days</button>
+          <button class="comparison-tab" data-period="30">30 Days</button>
+          <button class="comparison-tab" data-period="90">3 Months</button>
+        </div>
+        <button class="btn-outline">
+          <i data-lucide="calendar" style="width:14px;height:14px"></i>
+          This Week vs Last Week
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="compare-grid">
+      <div class="compare-card sleep">
+        <div class="compare-header">
+          <div class="compare-icon" style="background:var(--blue-light)">
+            <i data-lucide="moon" style="width:20px;height:20px;color:#2563EB"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--gray-500)">Sleep</div>
+          </div>
+        </div>
+        <div class="compare-value">
+          <span class="compare-big">7h 48m</span>
+          <span class="compare-unit">This Week</span>
+        </div>
+        <div style="font-size:13px;color:var(--gray-500)">6h 52m Last Week</div>
+        <div class="compare-change up">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 14% Better sleep duration
+        </div>
+        <div class="compare-mini-chart">
+          <canvas id="sleepMiniChart"></canvas>
+        </div>
+      </div>
+
+      <div class="compare-card water">
+        <div class="compare-header">
+          <div class="compare-icon" style="background:var(--blue-light)">
+            <i data-lucide="droplet" style="width:20px;height:20px;color:#2563EB"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--gray-500)">Water Intake</div>
+          </div>
+        </div>
+        <div class="compare-value">
+          <span class="compare-big">2.1 L</span>
+          <span class="compare-unit">This Week</span>
+        </div>
+        <div style="font-size:13px;color:var(--gray-500)">1.6 L Last Week</div>
+        <div class="compare-change up">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 31% Improved hydration
+        </div>
+        <div class="compare-mini-chart">
+          <canvas id="waterMiniChart"></canvas>
+        </div>
+      </div>
+
+      <div class="compare-card activity">
+        <div class="compare-header">
+          <div class="compare-icon" style="background:var(--lime-light)">
+            <i data-lucide="activity" style="width:20px;height:20px;color:var(--dark)"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--gray-500)">Activity</div>
+          </div>
+        </div>
+        <div class="compare-value">
+          <span class="compare-big">6,842</span>
+          <span class="compare-unit">steps</span>
+        </div>
+        <div style="font-size:13px;color:var(--gray-500)">5,230 Last Week</div>
+        <div class="compare-change up">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 31% More active
+        </div>
+        <div class="compare-mini-chart">
+          <canvas id="activityMiniChart"></canvas>
+        </div>
+      </div>
+
+      <div class="compare-card mood">
+        <div class="compare-header">
+          <div class="compare-icon" style="background:var(--yellow-light)">
+            <i data-lucide="smile" style="width:20px;height:20px;color:#D97706"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--gray-500)">Mood</div>
+          </div>
+        </div>
+        <div class="compare-value">
+          <span class="compare-big">Good</span>
+        </div>
+        <div style="font-size:13px;color:var(--gray-500)">Fair Last Week</div>
+        <div class="compare-change up">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 20% Better mood
+        </div>
+        <div class="compare-mini-chart">
+          <canvas id="moodMiniChart"></canvas>
+        </div>
+      </div>
+
+      <div class="compare-card hr">
+        <div class="compare-header">
+          <div class="compare-icon" style="background:var(--pink-light)">
+            <i data-lucide="heart" style="width:20px;height:20px;color:#DC2626"></i>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:var(--gray-500)">Heart Rate</div>
+          </div>
+        </div>
+        <div class="compare-value">
+          <span class="compare-big">72</span>
+          <span class="compare-unit">bpm</span>
+        </div>
+        <div style="font-size:13px;color:var(--gray-500)">76 bpm Last Week</div>
+        <div class="compare-change down">
+          <i data-lucide="trending-down" style="width:16px;height:16px"></i>
+          ↓ 5% Slightly lower
+        </div>
+        <div class="compare-mini-chart">
+          <canvas id="hrMiniChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detailed Charts -->
+    <div class="grid-2">
+      <div class="compare-detail">
+        <h3>Sleep Comparison</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-size:24px;font-weight:800">7h 48m</div>
+            <div style="font-size:12px;color:var(--gray-500)">This Week</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:24px;font-weight:800">6h 52m</div>
+            <div style="font-size:12px;color:var(--gray-500)">Last Week</div>
+          </div>
+        </div>
+        <div class="compare-change up" style="margin-bottom:12px">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 14% Improvement
+        </div>
+        <div class="chart-container">
+          <canvas id="sleepCompareChart"></canvas>
+        </div>
+      </div>
+
+      <div class="compare-detail">
+        <h3>Water Intake Comparison</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-size:24px;font-weight:800">2.1 L</div>
+            <div style="font-size:12px;color:var(--gray-500)">This Week</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:24px;font-weight:800">1.6 L</div>
+            <div style="font-size:12px;color:var(--gray-500)">Last Week</div>
+          </div>
+        </div>
+        <div class="compare-change up" style="margin-bottom:12px">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 31% Improvement
+        </div>
+        <div class="chart-container">
+          <canvas id="waterCompareChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="compare-detail">
+        <h3>Activity Comparison</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-size:24px;font-weight:800">6,842</div>
+            <div style="font-size:12px;color:var(--gray-500)">This Week</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:24px;font-weight:800">5,230</div>
+            <div style="font-size:12px;color:var(--gray-500)">Last Week</div>
+          </div>
+        </div>
+        <div class="compare-change up" style="margin-bottom:12px">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 31% Improvement
+        </div>
+        <div class="chart-container">
+          <canvas id="activityCompareChart"></canvas>
+        </div>
+      </div>
+
+      <div class="compare-detail">
+        <h3>Mood Comparison</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div>
+            <div style="font-size:24px;font-weight:800">Good</div>
+            <div style="font-size:12px;color:var(--gray-500)">This Week</div>
+          </div>
+          <div style="text-align:right">
+            <div style="font-size:24px;font-weight:800">Fair</div>
+            <div style="font-size:12px;color:var(--gray-500)">Last Week</div>
+          </div>
+        </div>
+        <div class="compare-change up" style="margin-bottom:12px">
+          <i data-lucide="trending-up" style="width:16px;height:16px"></i>
+          ↑ 20% Improvement
+        </div>
+        <div class="chart-container">
+          <canvas id="moodCompareChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="compare-detail">
+      <h3>Heart Rate Comparison</h3>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div>
+          <div style="font-size:24px;font-weight:800">72 bpm</div>
+          <div style="font-size:12px;color:var(--gray-500)">This Week</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:24px;font-weight:800">76 bpm</div>
+          <div style="font-size:12px;color:var(--gray-500)">Last Week</div>
+        </div>
+      </div>
+      <div class="compare-change down" style="margin-bottom:12px">
+        <i data-lucide="trending-down" style="width:16px;height:16px"></i>
+        ↓ 5% Slightly lower (better)
+      </div>
+      <div class="chart-container" style="height:150px">
+        <canvas id="hrCompareChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Key Insights -->
+    <div class="compare-detail" style="background:linear-gradient(135deg, var(--lime-light) 0%, var(--card-bg) 100%);border:1px solid var(--lime)">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+        <i data-lucide="lightbulb" style="width:20px;height:20px;color:var(--dark)"></i>
+        <h3 style="font-size:16px;font-weight:800">Key Insights</h3>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--card-bg);border-radius:var(--radius-sm)">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center">
+            <i data-lucide="moon" style="width:20px;height:20px;color:#2563EB"></i>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:700">Sleep Duration</div>
+            <div style="font-size:12px;color:var(--gray-500)">You slept 14% more than last week. Keep it up!</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--card-bg);border-radius:var(--radius-sm)">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center">
+            <i data-lucide="droplet" style="width:20px;height:20px;color:#2563EB"></i>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:700">Hydration</div>
+            <div style="font-size:12px;color:var(--gray-500)">Your water intake increased by 31%. Great progress!</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;padding:16px;background:var(--card-bg);border-radius:var(--radius-sm)">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--lime-light);display:flex;align-items:center;justify-content:center">
+            <i data-lucide="activity" style="width:20px;height:20px;color:var(--dark)"></i>
+          </div>
+          <div>
+            <div style="font-size:14px;font-weight:700">Activity</div>
+            <div style="font-size:12px;color:var(--gray-500)">Step count improved by 31%. You're getting healthier!</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const chartDefaults = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top' } },
+      scales: { x: { grid: { display: false } }, y: { grid: { color: '#F0F0F0' } } }
+    };
+
+    // Mini sparklines
+    function createMini(id, data, color) {
+      new Chart(document.getElementById(id), {
+        type: 'line',
+        data: {
+          labels: data.map((_, i) => i),
+          datasets: [{ data, borderColor: color, borderWidth: 2, fill: true, backgroundColor: color + '20', tension: 0.4, pointRadius: 0 }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+      });
+    }
+
+    createMini('sleepMiniChart', [6.5, 7.0, 8.0, 7.0, 6.5, 8.0, 7.8], '#2563EB');
+    createMini('waterMiniChart', [1.8, 2.0, 2.2, 2.1, 2.3, 2.0, 2.1], '#2563EB');
+    createMini('activityMiniChart', [5500, 6200, 7000, 6800, 7200, 6500, 6842], '#101820');
+    createMini('moodMiniChart', [3.5, 4.0, 4.2, 3.8, 4.5, 4.0, 4.1], '#D97706');
+    createMini('hrMiniChart', [75, 72, 70, 73, 71, 74, 72], '#DC2626');
+
+    // Comparison charts
+    new Chart(document.getElementById('sleepCompareChart'), {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [
+          { label: 'This Week', data: [7.5, 8.0, 7.0, 6.5, 8.5, 7.0, 7.8], backgroundColor: '#D4F547', borderRadius: 8 },
+          { label: 'Last Week', data: [6.0, 6.5, 7.0, 6.5, 6.0, 7.5, 7.0], backgroundColor: '#E5E5E5', borderRadius: 8 }
+        ]
+      },
+      options: { ...chartDefaults, plugins: { ...chartDefaults.plugins, legend: { position: 'top' } } }
+    });
+
+    new Chart(document.getElementById('waterCompareChart'), {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [
+          { label: 'This Week', data: [1.8, 2.0, 2.2, 2.1, 2.3, 2.0, 2.1], backgroundColor: '#D4F547', borderRadius: 8 },
+          { label: 'Last Week', data: [1.5, 1.6, 1.4, 1.7, 1.5, 1.8, 1.6], backgroundColor: '#E5E5E5', borderRadius: 8 }
+        ]
+      },
+      options: chartDefaults
+    });
+
+    new Chart(document.getElementById('activityCompareChart'), {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [
+          { label: 'This Week', data: [5500, 6200, 7000, 6800, 7200, 6500, 6842], backgroundColor: '#D4F547', borderRadius: 8 },
+          { label: 'Last Week', data: [4200, 4800, 5500, 5000, 5800, 5200, 5230], backgroundColor: '#E5E5E5', borderRadius: 8 }
+        ]
+      },
+      options: chartDefaults
+    });
+
+    new Chart(document.getElementById('moodCompareChart'), {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [
+          { label: 'This Week', data: [3.5, 4.0, 4.2, 3.8, 4.5, 4.0, 4.1], backgroundColor: '#D4F547', borderRadius: 8 },
+          { label: 'Last Week', data: [3.0, 3.2, 3.5, 3.0, 3.8, 3.5, 3.3], backgroundColor: '#E5E5E5', borderRadius: 8 }
+        ]
+      },
+      options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 0, max: 5 } } }
+    });
+
+    new Chart(document.getElementById('hrCompareChart'), {
+      type: 'line',
+      data: {
+        labels: days,
+        datasets: [
+          { label: 'This Week', data: [75, 72, 70, 73, 71, 74, 72], borderColor: '#F04E23', backgroundColor: 'rgba(240, 78, 35, 0.1)', fill: true, tension: 0.4, pointBackgroundColor: '#D4F547', pointBorderColor: '#F04E23', pointBorderWidth: 2, pointRadius: 6 },
+          { label: 'Last Week', data: [78, 76, 77, 75, 78, 76, 76], borderColor: '#E5E5E5', backgroundColor: 'transparent', fill: false, tension: 0.4, borderDash: [5, 5], pointRadius: 4 }
+        ]
+      },
+      options: { ...chartDefaults, scales: { ...chartDefaults.scales, y: { ...chartDefaults.scales.y, min: 60, max: 90 } } }
+    });
+
+    // Tab switching
+    document.querySelectorAll('.comparison-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.comparison-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        console.log('Period changed to:', tab.dataset.period);
+      });
+    });
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  </script>
+<script src="/static/js/main.js"></script>
+  <script>lucide.createIcons();</script>
+
+<script>
+(function() {
+  // Check auth status on all pages
+  fetch('/api/me', {credentials: 'include'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.user) {
+        // Logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        const dropdownName = document.getElementById('dropdownName');
+        const dropdownEmail = document.getElementById('dropdownEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (authButtons) authButtons.style.display = 'none';
+        if (userMenu) {
+          userMenu.style.display = 'block';
+          const name = (data.user.first_name || 'User').split(' ')[0];
+          if (userName) userName.textContent = name;
+          if (dropdownName) dropdownName.textContent = data.user.first_name + ' ' + (data.user.last_name || '');
+          if (dropdownEmail) dropdownEmail.textContent = data.user.email;
+          if (userAvatar) userAvatar.textContent = (data.user.first_name || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        // Not logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        if (authButtons) authButtons.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  
+  // User dropdown toggle
+  const menuBtn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+  }
+})();
+</script>
+
+</body>
+</html>

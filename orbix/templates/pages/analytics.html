@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX — Health Analytics</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    .analytics-period-toggle {
+      display: flex;
+      gap: 8px;
+      background: var(--card-bg);
+      padding: 6px;
+      border-radius: var(--radius-pill);
+      box-shadow: var(--shadow);
+    }
+    .period-btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: var(--transition);
+      border: none;
+      background: transparent;
+      color: var(--gray-500);
+    }
+    .period-btn.active {
+      background: var(--lime);
+      color: var(--dark);
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .metric-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .metric-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .metric-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+    .metric-label {
+      font-size: 13px;
+      color: var(--gray-500);
+      font-weight: 500;
+    }
+    .metric-trend {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .metric-trend.up { color: var(--green); }
+    .metric-trend.down { color: var(--orange); }
+    .chart-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 16px;
+    }
+    .chart-card h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin-bottom: 16px;
+    }
+    .insight-card {
+      background: linear-gradient(135deg, var(--lime-light) 0%, var(--card-bg) 100%);
+      border-radius: var(--radius);
+      padding: 20px;
+      border: 1px solid var(--lime);
+    }
+    .insight-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .insight-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--card-bg);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .insight-item:hover {
+      transform: translateX(4px);
+    }
+    .progress-ring {
+      position: relative;
+      width: 60px;
+      height: 60px;
+    }
+    .progress-ring svg {
+      transform: rotate(-90deg);
+    }
+    .progress-ring-value {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .detail-chart-wrap {
+      position: relative;
+      height: 240px;
+      min-height: 240px;
+    }
+    .detail-chart-wrap canvas {
+      width: 100% !important;
+      height: 240px !important;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text"><h1>ArogyaX</h1><span>Analytics</span></div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn"><i data-lucide="heart" style="width:16px;height:16px"></i></button>
+      <button class="icon-btn"><i data-lucide="sparkles" style="width:16px;height:16px"></i></button>
+      <button class="date-pill">
+        <i data-lucide="bell" style="width:14px;height:14px"></i>
+        <span>Sat, 26 Aug</span>
+        <span class="badge-count">5</span>
+      </button>
+      <div class="hamburger"><i data-lucide="menu" style="width:18px;height:18px"></i></div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-item" id="nav-home">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/page/chat" class="sidebar-item" id="nav-ai-chat">
+      <i data-lucide="message-circle"></i>
+      <span>AI Chat</span>
+    </a>
+    <a href="/page/analytics" class="sidebar-item active" id="nav-analytics">
+      <i data-lucide="bar-chart-2"></i>
+      <span>Analytics</span>
+    </a>
+    <a href="/page/knowledge" class="sidebar-item" id="nav-knowledge">
+      <i data-lucide="book-open"></i>
+      <span>Knowledge</span>
+    </a>
+    <a href="/page/reports" class="sidebar-item" id="nav-reports">
+      <i data-lucide="file-text"></i>
+      <span>Reports</span>
+    </a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <a href="/page/settings" class="sidebar-item" id="nav-settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div class="section-header">
+        <div class="section-icon">
+          <i data-lucide="bar-chart-2" style="width:20px;height:20px"></i>
+        </div>
+        <div>
+          <h2 class="section-title">Health Analytics</h2>
+          <p class="section-subtitle">Track your health metrics and trends over time</p>
+        </div>
+      </div>
+      <div class="analytics-period-toggle">
+        <button class="period-btn active" data-period="7">7 Days</button>
+        <button class="period-btn" data-period="30">30 Days</button>
+        <button class="period-btn" data-period="90">3 Months</button>
+      </div>
+    </div>
+
+    <!-- Metric Cards -->
+    <div class="metric-grid">
+      <div class="metric-card">
+        <div class="metric-header">
+          <div class="metric-icon" style="background:var(--blue-light)">
+            <i data-lucide="moon" style="width:20px;height:20px;color:#2563EB"></i>
+          </div>
+          <span class="metric-trend up"><i data-lucide="trending-up" style="width:14px;height:14px"></i> 14%</span>
+        </div>
+        <div class="metric-value">7h 48m</div>
+        <div class="metric-label">Average Sleep Duration</div>
+        <div style="height:40px"><canvas id="sleepChart"></canvas></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <div class="metric-icon" style="background:var(--blue-light)">
+            <i data-lucide="droplet" style="width:20px;height:20px;color:#2563EB"></i>
+          </div>
+          <span class="metric-trend up"><i data-lucide="trending-up" style="width:14px;height:14px"></i> 31%</span>
+        </div>
+        <div class="metric-value">2.1 L</div>
+        <div class="metric-label">Daily Water Intake</div>
+        <div style="height:40px"><canvas id="waterChart"></canvas></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <div class="metric-icon" style="background:var(--lime-light)">
+            <i data-lucide="activity" style="width:20px;height:20px;color:var(--dark)"></i>
+          </div>
+          <span class="metric-trend up"><i data-lucide="trending-up" style="width:14px;height:14px"></i> 31%</span>
+        </div>
+        <div class="metric-value">6,842</div>
+        <div class="metric-label">Daily Steps</div>
+        <div style="height:40px"><canvas id="activityChart"></canvas></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <div class="metric-icon" style="background:var(--yellow-light)">
+            <i data-lucide="smile" style="width:20px;height:20px;color:#D97706"></i>
+          </div>
+          <span class="metric-trend up"><i data-lucide="trending-up" style="width:14px;height:14px"></i> 20%</span>
+        </div>
+        <div class="metric-value">Good</div>
+        <div class="metric-label">Mood Score</div>
+        <div style="height:40px"><canvas id="moodChart"></canvas></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <div class="metric-icon" style="background:var(--pink-light)">
+            <i data-lucide="heart" style="width:20px;height:20px;color:#DC2626"></i>
+          </div>
+          <span class="metric-trend down"><i data-lucide="trending-down" style="width:14px;height:14px"></i> 5%</span>
+        </div>
+        <div class="metric-value">72 bpm</div>
+        <div class="metric-label">Resting Heart Rate</div>
+        <div style="height:40px"><canvas id="hrChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Main Charts -->
+    <div class="grid-2">
+      <div class="chart-card">
+        <h3>Sleep Patterns</h3>
+        <div class="detail-chart-wrap"><canvas id="sleepDetailChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <h3>Activity Trends</h3>
+        <div class="detail-chart-wrap"><canvas id="activityDetailChart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Insights & Progress -->
+    <div class="grid-2">
+      <div class="insight-card">
+        <div style="display:flex;align-items:center;gap:8px">
+          <i data-lucide="lightbulb" style="width:20px;height:20px;color:var(--dark)"></i>
+          <h3 style="font-size:16px;font-weight:800">Key Insights</h3>
+        </div>
+        <div class="insight-list">
+          <div class="insight-item">
+            <i data-lucide="moon" style="width:20px;height:20px;color:#2563EB"></i>
+            <div>
+              <div style="font-size:14px;font-weight:700">Sleep Duration Improved</div>
+              <div style="font-size:12px;color:var(--gray-500)">You slept 14% more than last week. Keep it up!</div>
+            </div>
+          </div>
+          <div class="insight-item">
+            <i data-lucide="droplet" style="width:20px;height:20px;color:#2563EB"></i>
+            <div>
+              <div style="font-size:14px;font-weight:700">Hydration Boosted</div>
+              <div style="font-size:12px;color:var(--gray-500)">Water intake increased by 31%. Great progress!</div>
+            </div>
+          </div>
+          <div class="insight-item">
+            <i data-lucide="activity" style="width:20px;height:20px;color:var(--dark)"></i>
+            <div>
+              <div style="font-size:14px;font-weight:700">More Active</div>
+              <div style="font-size:12px;color:var(--gray-500)">Step count improved by 31%. You're getting healthier!</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3>Overall Progress</h3>
+        <div style="margin-bottom:16px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+            <span style="font-size:14px;font-weight:600">You're doing better than last week!</span>
+            <span style="font-size:14px;font-weight:800">72%</span>
+          </div>
+          <div style="height:8px;background:var(--gray-200);border-radius:4px;overflow:hidden">
+            <div style="height:100%;width:72%;background:var(--lime);border-radius:4px"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+          <div style="text-align:center">
+            <div style="width:50px;height:50px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+              <i data-lucide="moon" style="width:24px;height:24px;color:#2563EB"></i>
+            </div>
+            <div style="font-size:12px;font-weight:700">Sleep</div>
+            <div style="font-size:11px;color:var(--green)">↑ 14%</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:50px;height:50px;border-radius:50%;background:var(--blue-light);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+              <i data-lucide="droplet" style="width:24px;height:24px;color:#2563EB"></i>
+            </div>
+            <div style="font-size:12px;font-weight:700">Water</div>
+            <div style="font-size:11px;color:var(--green)">↑ 31%</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:50px;height:50px;border-radius:50%;background:var(--lime-light);display:flex;align-items:center;justify-content:center;margin:0 auto 8px">
+              <i data-lucide="activity" style="width:24px;height:24px;color:var(--dark)"></i>
+            </div>
+            <div style="font-size:12px;font-weight:700">Activity</div>
+            <div style="font-size:11px;color:var(--green)">↑ 31%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // ── Mini sparkline charts ──
+    function createMiniChart(canvasId, data, color) {
+      const ctx = document.getElementById(canvasId);
+      if (!ctx) return;
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: data.map((_, i) => i),
+          datasets: [{
+            data: data,
+            borderColor: color,
+            borderWidth: 2,
+            fill: true,
+            backgroundColor: color + '20',
+            tension: 0.4,
+            pointRadius: 0,
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: false,
+          transitions: { active: { animation: { duration: 0 } } },
+          plugins: { legend: { display: false }, tooltip: { enabled: false } },
+          scales: { x: { display: false }, y: { display: false } },
+        }
+      });
+    }
+
+    createMiniChart('sleepChart', [6.5, 7.0, 8.0, 7.0, 6.5, 8.0, 7.8], '#2563EB');
+    createMiniChart('waterChart', [1.8, 2.0, 2.2, 2.1, 2.3, 2.0, 2.1], '#2563EB');
+    createMiniChart('activityChart', [5500, 6200, 7000, 6800, 7200, 6500, 6842], '#101820');
+    createMiniChart('moodChart', [3.5, 4.0, 4.2, 3.8, 4.5, 4.0, 4.1], '#D97706');
+    createMiniChart('hrChart', [75, 72, 70, 73, 71, 74, 72], '#DC2626');
+
+    // ── Detail charts ──
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    new Chart(document.getElementById('sleepDetailChart'), {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Hours',
+          data: [7.5, 8.0, 7.0, 6.5, 8.5, 7.0, 7.8],
+          backgroundColor: '#BDF34B',
+          borderRadius: 8,
+        }, {
+          type: 'line',
+          label: 'Sleep quality',
+          data: [78, 82, 75, 70, 86, 76, 82],
+          borderColor: '#5F7BEA',
+          backgroundColor: 'transparent',
+          borderWidth: 2,
+          tension: 0.35,
+          pointRadius: 3,
+          yAxisID: 'quality'
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+          resizeDelay: 150,
+          animation: false,
+          transitions: { active: { animation: { duration: 0 } } },
+          plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, max: 10, grid: { color: '#E4EBF0' }, title: {display:true,text:'Hours'} },
+          quality: { position:'right', min:0, max:100, grid:{display:false}, ticks:{callback:value => value + '%'} }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('activityDetailChart'), {
+      type: 'bar',
+      data: {
+        labels: days,
+        datasets: [{
+          label: 'Steps',
+          data: [5500, 6200, 7000, 6800, 7200, 6500, 6842],
+          backgroundColor: '#BDF34B',
+          borderRadius: 8,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+          resizeDelay: 150,
+          animation: false,
+          transitions: { active: { animation: { duration: 0 } } },
+          plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { display: false } },
+          y: { beginAtZero: true, grid: { color: '#E4EBF0' }, title: {display:true,text:'Steps'} }
+        }
+      }
+    });
+
+    // ── Period toggle ──
+    document.querySelectorAll('.period-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        // In production, this would fetch new data
+        console.log('Period changed to:', btn.dataset.period);
+      });
+    });
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  </script>
+<script src="/static/js/main.js"></script>
+  <script>lucide.createIcons();</script>
+
+<script>
+(function() {
+  // Check auth status on all pages
+  fetch('/api/me', {credentials: 'include'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.user) {
+        // Logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        const dropdownName = document.getElementById('dropdownName');
+        const dropdownEmail = document.getElementById('dropdownEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (authButtons) authButtons.style.display = 'none';
+        if (userMenu) {
+          userMenu.style.display = 'block';
+          const name = (data.user.first_name || 'User').split(' ')[0];
+          if (userName) userName.textContent = name;
+          if (dropdownName) dropdownName.textContent = data.user.first_name + ' ' + (data.user.last_name || '');
+          if (dropdownEmail) dropdownEmail.textContent = data.user.email;
+          if (userAvatar) userAvatar.textContent = (data.user.first_name || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        // Not logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        if (authButtons) authButtons.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  
+  // User dropdown toggle
+  const menuBtn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+  }
+})();
+</script>
+
+</body>
+</html>

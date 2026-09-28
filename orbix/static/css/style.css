@@ -1,0 +1,128 @@
+/* Orbix Studio — Original Dashboard Styles (imported into index.html) */
+/* These styles are ALSO used by index.html which includes shared.css */
+
+/* ── Base overrides & extensions ── */
+.main-content { margin-top: 64px; margin-left: 72px; padding: 24px 32px 40px; min-height: calc(100vh - 64px); background: var(--bg); }
+
+/* ── Page Header ── */
+.page-header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 24px; }
+.page-header-left small { font-size: 13px; font-weight: 500; color: #909090; text-transform: uppercase; letter-spacing: .5px; }
+.page-header-left h2 { font-size: 40px; font-weight: 800; line-height: 1.1; letter-spacing: -1px; }
+.page-header-right { display: flex; align-items: center; gap: 12px; }
+.header-control { display: flex; align-items: center; gap: 8px; background: #fff; border-radius: 50px; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border: 1px solid #E5E5E5; }
+.header-control svg { width: 14px; height: 14px; color: #909090; }
+.weekly-btn { background: #101820; color: #fff; border: none; padding: 10px 20px; border-radius: 50px; font-size: 14px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
+/* ── Card Grid ── */
+.card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.card-grid.row2 { grid-template-columns: 1fr 1fr 1.5fr; }
+.card { background: #fff; border-radius: 20px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.06); display: flex; flex-direction: column; gap: 12px; min-height: 200px; }
+.card.lime-card { background: #D4F547; }
+
+/* ── Tracker Card ── */
+.tracker-header { display: flex; align-items: center; justify-content: space-between; }
+.analytics-label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: #909090; }
+.analytics-dot { width: 12px; height: 12px; background: #F04E23; border-radius: 3px; }
+.zoom-controls { display: flex; flex-direction: column; gap: 4px; }
+.zoom-btn { width: 24px; height: 24px; border-radius: 50%; border: 1px solid #E5E5E5; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 14px; color: #909090; }
+.tracker-stats { display: flex; gap: 32px; align-items: flex-end; }
+.tracker-stat { display: flex; flex-direction: column; gap: 4px; }
+.tracker-stat-label { font-size: 13px; font-weight: 500; color: #909090; }
+.tracker-stat-value { display: flex; align-items: baseline; gap: 4px; }
+.tracker-stat-value .big { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+.tracker-stat-value .unit { font-size: 13px; font-weight: 600; color: #909090; }
+.lime-pill { background: #D4F547; color: #101820; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 50px; display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.chart-percent { font-size: 14px; font-weight: 700; text-align: center; margin-bottom: 4px; }
+.chart-container { flex: 1; position: relative; min-height: 140px; }
+.chart-container canvas { width: 100% !important; height: 100% !important; }
+.tab-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.tab-pill { padding: 6px 14px; border-radius: 50px; font-size: 12px; font-weight: 700; border: 1px solid #E5E5E5; background: #fff; color: #101820; cursor: pointer; transition: all .15s; }
+.tab-pill.active { background: #D4F547; border-color: #D4F547; }
+.tab-pill:hover:not(.active) { background: #F4F4F4; }
+
+/* ── Oxygen / BPM Card ── */
+.oxygen-section { display: flex; flex-direction: column; gap: 4px; }
+.section-label { font-size: 12px; font-weight: 600; color: #909090; text-transform: uppercase; letter-spacing: .5px; }
+.big-value { font-size: 48px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+.big-value .pct-sign { font-size: 24px; font-weight: 700; color: #909090; letter-spacing: 0; }
+.subtext { font-size: 12px; font-weight: 500; color: #909090; }
+.bpm-subcard { background: #E0F0FF; border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+.bpm-time { font-size: 12px; font-weight: 600; color: #909090; }
+.bpm-value { font-size: 44px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+.bpm-unit { font-size: 16px; font-weight: 600; color: #909090; }
+
+/* ── Wellness Card ── */
+.wellness-tabs { display: flex; gap: 8px; }
+.wellness-tab { display: flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 50px; font-size: 12px; font-weight: 700; border: 1px solid #E5E5E5; background: #fff; cursor: pointer; }
+.wellness-tab .tab-letter { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 10px; }
+.wellness-tab.active .tab-letter { background: #D4F547; }
+.kcal-row { display: flex; align-items: baseline; gap: 8px; }
+.blockchain-label { font-size: 10px; font-weight: 600; color: #909090; text-transform: uppercase; letter-spacing: .3px; line-height: 1.4; }
+.toggle-group { display: flex; gap: 4px; margin-top: 4px; }
+.toggle-btn { width: 22px; height: 22px; border-radius: 50%; border: 1px solid #E5E5E5; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 12px; color: #909090; }
+.bottom-split { display: flex; gap: 12px; margin-top: auto; }
+.split-item { flex: 1; display: flex; flex-direction: column; gap: 4px; }
+.split-value { font-size: 28px; font-weight: 800; letter-spacing: -1px; }
+.split-label { font-size: 11px; font-weight: 500; color: #909090; }
+
+/* ── Body/dB Card ── */
+.db-card-content { display: flex; align-items: center; justify-content: space-between; flex: 1; }
+.db-left { display: flex; flex-direction: column; gap: 12px; }
+.dot-indicators { display: flex; gap: 8px; align-items: center; }
+.dot { width: 12px; height: 12px; border-radius: 50%; background: rgba(16,24,32,.2); }
+.dot.active { background: transparent; border: 2px solid #101820; position: relative; }
+.dot.active::after { content: ''; position: absolute; width: 6px; height: 6px; background: #101820; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%,-50%); }
+.db-label { font-size: 14px; font-weight: 700; color: #101820; opacity: .6; }
+.db-number { font-size: 52px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+.db-right { flex: 1; display: flex; align-items: center; justify-content: center; }
+.db-right svg { max-width: 120px; max-height: 200px; }
+
+/* ── Breath Chart ── */
+.breath-chart-container { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; padding: 0 8px; }
+.breath-stems { display: flex; align-items: flex-end; justify-content: space-between; height: 160px; padding: 0 4px; }
+.breath-stem { display: flex; flex-direction: column; align-items: center; gap: 0; flex: 1; }
+.stem-line { width: 2px; background: #C4C4C4; border-radius: 1px; margin-bottom: 4px; }
+.stem-dot { width: 12px; height: 12px; background: #D4F547; border-radius: 50%; }
+.stem-label { font-size: 12px; font-weight: 700; color: #909090; margin-top: 8px; }
+
+/* ── Take A Breath Card ── */
+.breath-exercise { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.breath-title { font-size: 28px; font-weight: 800; letter-spacing: -1px; line-height: 1.2; }
+.breath-instruction { margin-left: auto; text-align: right; font-size: 13px; font-weight: 500; color: #909090; line-height: 1.5; }
+.breath-footer { display: flex; align-items: center; gap: 12px; background: #F4F4F4; border-radius: 50px; padding: 10px 16px; margin-top: auto; }
+.user-id { font-size: 12px; font-weight: 700; color: #909090; background: #fff; border-radius: 50px; padding: 4px 10px; white-space: nowrap; }
+.breath-status { font-size: 13px; font-weight: 600; color: #101820; }
+.breath-icon-btn { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #E5E5E5; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; margin-left: auto; }
+
+/* ── Icon Rail ── */
+.icon-rail { position: fixed; left: 16px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: center; gap: 8px; z-index: 90; }
+.rail-top-icon { width: 36px; height: 36px; border-radius: 50%; border: 1px solid #E5E5E5; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #101820; margin-bottom: 8px; }
+.rail-btn { width: 48px; height: 32px; border-radius: 50px; border: 1px solid #E5E5E5; background: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; color: #101820; font-size: 11px; font-weight: 700; transition: all .15s; flex-direction: column; gap: 2px; }
+.rail-btn.active { background: #101820; color: #fff; border-color: #101820; }
+.rail-btn svg { width: 14px; height: 14px; }
+.rail-bottom { margin-top: 8px; display: flex; flex-direction: column; gap: 8px; }
+.rail-bottom .rail-btn { width: 36px; height: 36px; border-radius: 50%; background: #101820; color: #fff; border: none; }
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .card-grid { grid-template-columns: repeat(2, 1fr); }
+  .card-grid.row2 { grid-template-columns: 1fr 1fr; }
+  .card-grid.row2 .card:last-child { grid-column: span 2; }
+}
+@media (max-width: 900px) {
+  .icon-rail { display: none; }
+  .main-content { margin-left: 0; padding: 16px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .card-grid.row2 { grid-template-columns: 1fr; }
+  .card-grid.row2 .card:last-child { grid-column: span 1; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .page-header-right { flex-wrap: wrap; }
+}
+@media (max-width: 600px) {
+  .navbar { padding: 0 12px; }
+  .nav-center-icons { display: none; }
+  .page-header-left h2 { font-size: 28px; }
+  .big-value { font-size: 36px; }
+  .db-number { font-size: 40px; }
+  .breath-title { font-size: 22px; }
+}

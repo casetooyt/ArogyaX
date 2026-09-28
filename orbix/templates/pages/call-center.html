@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Orbix Call Center</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/shared.css') }}" />
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f7fb; margin: 0; color: #1f2937; }
+    .page-shell { max-width: 1200px; margin: 32px auto; padding: 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: white; border-radius: 16px; padding: 18px; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08); }
+    .card small { display: block; color: #6b7280; margin-bottom: 8px; }
+    .card strong { font-size: 1.8rem; }
+    .panel { background: white; border-radius: 16px; padding: 18px; box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08); }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+    th, td { padding: 12px 10px; border-bottom: 1px solid #e5e7eb; text-align: left; }
+    th { background: #f8fafc; color: #374151; }
+    .badge { display: inline-block; padding: 5px 10px; border-radius: 999px; font-size: 12px; font-weight: bold; }
+    .badge.emergency { background: #fee2e2; color: #991b1b; }
+    .badge.normal { background: #dcfce7; color: #166534; }
+    .badge.priority { background: #fef3c7; color: #92400e; }
+    .status-pill { padding: 6px 10px; border-radius: 999px; font-size: 12px; background: #ecfeff; color: #0f766e; }
+    .meta { color: #6b7280; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="header">
+      <div>
+        <h1>Emergency Call Dashboard</h1>
+        <div class="meta">Live call records and emergency response monitoring</div>
+      </div>
+      <a class="btn btn-primary" href="/">Back to dashboard</a>
+    </div>
+
+    <div class="cards">
+      <div class="card">
+        <small>Total calls</small>
+        <strong id="totalCalls">0</strong>
+      </div>
+      <div class="card">
+        <small>Emergency calls</small>
+        <strong id="emergencyCalls">0</strong>
+      </div>
+      <div class="card">
+        <small>Normal calls</small>
+        <strong id="normalCalls">0</strong>
+      </div>
+      <div class="card">
+        <small>Last refresh</small>
+        <strong id="lastRefresh">--</strong>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h3>Recent toll-free health calls</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Call ID</th>
+              <th>Caller</th>
+              <th>Language</th>
+              <th>Issue</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th>Time</th>
+            </tr>
+          </thead>
+          <tbody id="callTableBody">
+            <tr><td colspan="7" class="meta">Loading records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    async function loadCallRecords() {
+      const res = await fetch('/api/call-records');
+      const data = await res.json();
+      const records = data.records || [];
+      document.getElementById('totalCalls').textContent = data.summary.total || 0;
+      document.getElementById('emergencyCalls').textContent = data.summary.emergency || 0;
+      document.getElementById('normalCalls').textContent = data.summary.normal || 0;
+      document.getElementById('lastRefresh').textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const tbody = document.getElementById('callTableBody');
+      if (!records.length) {
+        tbody.innerHTML = '<tr><td colspan="7" class="meta">No calls recorded yet.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = records.map(record => {
+        const level = record.emergency ? 'emergency' : record.status === 'priority' ? 'priority' : 'normal';
+        return `
+          <tr>
+            <td>${record.id}</td>
+            <td>${record.caller_number || 'Anonymous'}</td>
+            <td>${record.language || 'en'}</td>
+            <td>${(record.problem || '-').substring(0, 80)}${(record.problem || '').length > 80 ? '...' : ''}</td>
+            <td><span class="badge ${level}">${record.emergency ? 'Emergency' : 'Normal'}</span></td>
+            <td><span class="status-pill">${record.status || 'new'}</span></td>
+            <td class="meta">${record.created_at || '--'}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    loadCallRecords();
+    setInterval(loadCallRecords, 15000);
+  </script>
+</body>
+</html>

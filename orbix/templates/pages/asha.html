@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ASHA Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/shared.css') }}" />
+  <style>
+    body { background: #f5f5f4; color: #101820; }
+    .page-shell { max-width: 1200px; margin: 90px auto 40px; padding: 0 24px; }
+    .header { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 26px; }
+    .title { font-size: 2.1rem; font-weight: 900; letter-spacing: -0.04em; }
+    .subtitle { margin-top: 4px; color: #6b7280; font-size: 1.05rem; }
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(180px, 1fr)); gap: 18px; margin-bottom: 28px; }
+    .metric { background: #edf1f5; border-radius: 18px; padding: 24px 18px; box-shadow: 0 3px 12px rgba(16,24,32,.04); }
+    .metric-value { font-size: 3rem; font-weight: 800; line-height: 1; letter-spacing: -0.06em; }
+    .metric-label { margin-top: 10px; color: #6b7280; font-size: 0.93rem; text-transform: lowercase; }
+    .panel { background: #fff; border-radius: 18px; padding: 0; overflow: hidden; box-shadow: 0 6px 18px rgba(16,24,32,.06); }
+    .patient-row { display: flex; justify-content: space-between; align-items: center; gap: 18px; padding: 18px 20px; border-bottom: 1px solid #e5e7eb; }
+    .patient-row:last-child { border-bottom: none; }
+    .patient-name { font-size: 1.2rem; font-weight: 700; }
+    .patient-condition { color: #6b7280; font-size: 1rem; margin-top: 4px; }
+    .status-chip { border-radius: 12px; padding: 8px 16px; font-weight: 700; font-size: 0.85rem; display: inline-flex; align-items: center; white-space: nowrap; }
+    .patient-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .status-select, .note-input { border: 1px solid #d9dee5; border-radius: 9px; padding: 8px 10px; background: #fff; color: #101820; font: inherit; font-size: 0.85rem; }
+    .note-input { min-width: 240px; }
+    .save-button { border: 0; border-radius: 9px; padding: 9px 13px; background: #101820; color: #fff; font-weight: 700; cursor: pointer; }
+    .save-button:disabled { opacity: .55; cursor: wait; }
+    .save-message { color: #1f7a35; font-size: 0.82rem; min-height: 1em; }
+    .directory { background: #fff; border-radius: 18px; padding: 20px; margin-bottom: 28px; box-shadow: 0 6px 18px rgba(16,24,32,.06); }
+    .directory-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 14px; }
+    .directory-title { font-size: 1.15rem; font-weight: 800; }
+    .directory-subtitle { color: #6b7280; font-size: .9rem; margin-top: 4px; }
+    .search-row { display: flex; gap: 8px; }
+    .area-search { width: 100%; border: 1px solid #d9dee5; border-radius: 10px; padding: 11px 12px; font: inherit; }
+    .search-button { border: 0; border-radius: 10px; padding: 0 18px; background: #d4f547; color: #101820; font-weight: 800; cursor: pointer; white-space: nowrap; }
+    .worker-results { display: grid; gap: 10px; margin-top: 14px; }
+    .worker-card { border: 1px solid #e5e7eb; border-radius: 12px; padding: 14px; display: grid; grid-template-columns: 1.1fr 1fr auto; gap: 16px; align-items: center; }
+    .worker-name { font-weight: 800; font-size: 1rem; }
+    .worker-area, .worker-detail { color: #6b7280; font-size: .86rem; margin-top: 4px; }
+    .worker-detail strong { color: #101820; }
+    .worker-services { color: #101820; font-size: .86rem; line-height: 1.5; }
+    .worker-phone { display: inline-flex; margin-top: 7px; color: #101820; font-weight: 800; text-decoration: none; }
+    .available-badge { background: #dff5df; color: #1f7a35; border-radius: 999px; padding: 7px 11px; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+    .empty-results { color: #6b7280; background: #f8fafc; border-radius: 10px; padding: 12px; font-size: .88rem; }
+    .status-urgent { background: #ffe7df; color: #d9480f; }
+    .status-followup { background: #dff5df; color: #1f7a35; }
+    .status-stable { background: #dff5df; color: #1f7a35; }
+    .online-badge { background: #dff5df; color: #1f7a35; border-radius: 999px; padding: 8px 16px; font-size: 0.88rem; font-weight: 700; }
+    @media (max-width: 900px) { .metrics { grid-template-columns: repeat(2, minmax(160px, 1fr)); } .title { font-size: 1.7rem; } }
+    @media (max-width: 600px) { .metrics { grid-template-columns: 1fr; } .patient-row { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <div class="header">
+      <div>
+        <div class="title">ASHA / Health Worker Dashboard</div>
+        <div class="subtitle">Community care workload at a glance.</div>
+      </div>
+      <div id="workerStatus" class="online-badge">Online</div>
+    </div>
+
+    <div class="metrics" id="ashaStats"></div>
+
+    <section class="directory">
+      <div class="directory-head">
+        <div>
+          <div class="directory-title">Find an available ASHA worker</div>
+          <div class="directory-subtitle">Search by area name or worker name to see contact, language, service, and timing details.</div>
+        </div>
+        <span class="online-badge" id="workerCount">Ready</span>
+      </div>
+      <form class="search-row" id="workerSearchForm">
+        <input class="area-search" id="workerAreaSearch" list="areaSuggestions" placeholder="Search area, e.g. Patia or Khandagiri" autocomplete="off" />
+        <datalist id="areaSuggestions"><option value="Ward 12 Community Health"></option><option value="Patia"></option><option value="Chandrasekharpur"></option><option value="Khandagiri"></option><option value="Old Town"></option><option value="Cuttack Road"></option><option value="Rasulgarh"></option></datalist>
+        <button class="search-button" type="submit">Search</button>
+      </form>
+      <div class="worker-results" id="workerResults" aria-live="polite"></div>
+    </section>
+
+    <div class="panel" id="ashaPatients"></div>
+  </div>
+
+  <script>
+    async function loadAsha() {
+      const response = await fetch('/api/asha');
+      const data = await response.json();
+      const stats = data.stats || {};
+      const patientList = data.patients || [];
+
+      document.getElementById('workerStatus').textContent = (data.worker && data.worker.status) || 'Online';
+
+      const metricOrder = ['assigned', 'completed', 'followups', 'urgent'];
+      document.getElementById('ashaStats').innerHTML = metricOrder.map(key => `
+        <div class="metric">
+          <div class="metric-value">${stats[key] ?? 0}</div>
+          <div class="metric-label">${key}</div>
+        </div>
+      `).join('');
+
+      document.getElementById('ashaPatients').innerHTML = patientList.map(patient => {
+        const statusClass = patient.status === 'Urgent' ? 'status-urgent' : patient.status === 'Follow-up' ? 'status-followup' : 'status-stable';
+        const patientNote = patient.note ? `<div style="color:#6b7280;font-size:0.9rem;margin-top:6px;">${escapeHtml(patient.note)}</div>` : '';
+        return `
+          <div class="patient-row">
+            <div>
+              <div class="patient-name">${escapeHtml(patient.name)}</div>
+              <div class="patient-condition">${escapeHtml(patient.condition)} &middot; Last: ${escapeHtml(patient.last)}</div>
+              ${patientNote}
+            </div>
+            <div class="patient-actions">
+              <select class="status-select" data-status="${patient.id}" aria-label="Update ${escapeHtml(patient.name)} status">
+                ${['Urgent', 'Follow-up', 'Stable', 'Completed'].map(status => `<option ${status === patient.status ? 'selected' : ''}>${status}</option>`).join('')}
+              </select>
+              <input class="note-input" data-note="${patient.id}" value="${escapeAttribute(patient.note || '')}" aria-label="Note for ${escapeHtml(patient.name)}" />
+              <button class="save-button" data-save="${patient.id}">Save</button>
+              <span class="save-message" data-message="${patient.id}" aria-live="polite"></span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>'"]/g, character => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[character]));
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value).replace(/`/g, '&#96;');
+    }
+
+    async function searchWorkers(query = '') {
+      const response = await fetch(`/api/asha/workers?q=${encodeURIComponent(query.trim())}`);
+      const data = await response.json();
+      const results = document.getElementById('workerResults');
+      document.getElementById('workerCount').textContent = `${data.total} available`;
+      if (!data.workers.length) {
+        results.innerHTML = `<div class="empty-results">${escapeHtml(data.message)} Try another nearby area.</div>`;
+        return;
+      }
+      results.innerHTML = data.workers.map(worker => `
+        <article class="worker-card">
+          <div>
+            <div class="worker-name">${escapeHtml(worker.name)}</div>
+            <div class="worker-area">${escapeHtml(worker.area)}</div>
+            <a class="worker-phone" href="tel:${escapeAttribute(worker.phone.replace(/\s/g, ''))}">${escapeHtml(worker.phone)}</a>
+          </div>
+          <div>
+            <div class="worker-services"><strong>Services:</strong> ${worker.services.map(escapeHtml).join(', ')}</div>
+            <div class="worker-detail"><strong>Languages:</strong> ${worker.languages.map(escapeHtml).join(', ')}</div>
+            <div class="worker-detail"><strong>Timing:</strong> ${escapeHtml(worker.schedule)} &middot; ${escapeHtml(worker.experience)} experience</div>
+          </div>
+          <span class="available-badge">${escapeHtml(worker.status)}</span>
+        </article>
+      `).join('');
+    }
+
+    document.getElementById('workerSearchForm').addEventListener('submit', event => {
+      event.preventDefault();
+      searchWorkers(document.getElementById('workerAreaSearch').value);
+    });
+
+    document.getElementById('ashaPatients').addEventListener('click', async event => {
+      const button = event.target.closest('[data-save]');
+      if (!button) return;
+      const patientId = button.dataset.save;
+      const status = document.querySelector(`[data-status="${patientId}"]`).value;
+      const note = document.querySelector(`[data-note="${patientId}"]`).value;
+      const message = document.querySelector(`[data-message="${patientId}"]`);
+      button.disabled = true;
+      message.textContent = 'Saving...';
+      try {
+        const response = await fetch(`/api/asha/patients/${encodeURIComponent(patientId)}`, {
+          method: 'PATCH',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({status, note})
+        });
+        const result = await response.json();
+        if (!response.ok) throw new Error(result.message || 'Save failed');
+        message.textContent = 'Saved';
+        await loadAsha();
+      } catch (error) {
+        message.textContent = error.message;
+      } finally {
+        button.disabled = false;
+        setTimeout(() => { message.textContent = ''; }, 2500);
+      }
+    });
+
+    loadAsha();
+    searchWorkers();
+    setInterval(loadAsha, 15000);
+  </script>
+</body>
+</html>

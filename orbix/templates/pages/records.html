@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX Health Records</title>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    body { background: var(--bg); }
+    .main-content {
+      margin-left: 68px;
+      padding: 82px 24px 36px;
+    }
+    .records-grid {
+      display: grid;
+      grid-template-columns: 1.42fr 0.82fr;
+      gap: 18px;
+      margin-top: 22px;
+    }
+    .record-card {
+      background: var(--card-bg);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+    }
+    .care-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .care-head h3 {
+      font-size: 18px;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+    .care-head p {
+      color: var(--gray-500);
+      font-size: 12px;
+      margin-top: 4px;
+    }
+    .record-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--gray-200);
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .record-row:hover { background: rgba(212,245,71,0.04); }
+    .record-row.selected {
+      background: rgba(212,245,71,0.12);
+      border-radius: 10px;
+      padding-left: 10px;
+      padding-right: 10px;
+    }
+    .record-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: var(--lime-light);
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+      color: var(--dark);
+      flex-shrink: 0;
+    }
+    .record-body { flex: 1; }
+    .record-body strong {
+      display: block;
+      font-size: 15px;
+      line-height: 1.3;
+    }
+    .record-body small {
+      display: block;
+      color: var(--gray-500);
+      font-size: 11px;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .status-chip {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 5px 8px;
+      border-radius: 7px;
+      background: var(--green-light);
+      color: #16803c;
+      white-space: nowrap;
+    }
+    .status-chip.follow {
+      background: var(--yellow-light);
+      color: #a66500;
+    }
+    .summary-box {
+      background: var(--gray-100);
+      border-radius: 12px;
+      padding: 14px;
+      margin-top: 12px;
+    }
+    .summary-box strong {
+      display: block;
+      font-size: 24px;
+      margin-bottom: 3px;
+    }
+    .summary-box span {
+      color: var(--gray-500);
+      font-size: 11px;
+    }
+    .notice {
+      margin-top: 14px;
+      background: var(--lime-light);
+      border: 1px solid var(--lime);
+      border-radius: 10px;
+      color: var(--dark);
+      font-size: 12px;
+      line-height: 1.6;
+      padding: 12px 14px;
+    }
+    .record-form {
+      display: none;
+      background: var(--gray-50);
+      border: 1px solid var(--gray-200);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+    .record-form.visible { display: block; }
+    .record-form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .record-form label {
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--gray-500);
+    }
+    .record-form input, .record-form select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--gray-200);
+      background: var(--card-bg);
+      font-size: 13px;
+      color: var(--dark);
+      outline: none;
+    }
+    .record-form input:focus, .record-form select:focus {
+      border-color: var(--lime);
+      box-shadow: 0 0 0 4px rgba(212,245,71,0.15);
+    }
+    .record-form-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .record-empty {
+      color: var(--gray-500);
+      padding: 10px 0;
+      font-size: 13px;
+    }
+    @media (max-width: 900px) {
+      .sidebar { display: none !important; }
+      .main-content { margin-left: 0; padding: 84px 16px 28px; }
+      .records-grid { grid-template-columns: 1fr; }
+      .record-form-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text">
+          <h1>ArogyaX</h1>
+          <span>Health Records</span>
+        </div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <a class="btn-outline" href="/page/reports">Scan Report</a>
+      <a class="btn-lime" href="/page/care">Care Hub</a>
+    </div>
+  </nav>
+
+  <aside class="sidebar" style="position:fixed;left:0;top:58px;bottom:0;width:68px;background:var(--card-bg);border-right:1px solid var(--gray-200);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;z-index:90">
+    <a href="/" class="sidebar-item"><span>⌂</span><span>Home</span></a>
+    <a href="/page/chat" class="sidebar-item"><span>✉</span><span>AI Chat</span></a>
+    <a href="/page/records" class="sidebar-item active"><span>▣</span><span>Records</span></a>
+    <a href="/page/analytics" class="sidebar-item"><span>▤</span><span>Analytics</span></a>
+    <a href="/page/reports" class="sidebar-item"><span>☰</span><span>Reports</span></a>
+    <div style="flex:1"></div>
+    <a href="/auth/profile" class="sidebar-item"><span>⚙</span><span>Profile</span></a>
+  </aside>
+
+  <main class="main-content">
+    <div class="section-header">
+      <div class="section-icon">▣</div>
+      <div>
+        <h2 class="section-title">Health Records</h2>
+        <p class="section-subtitle">Your reports, clinical visits and important health history in one place</p>
+      </div>
+      <span class="section-badge"><span class="dot"></span>Private records</span>
+    </div>
+
+    <div class="records-grid">
+      <section class="record-card">
+        <div class="care-head">
+          <div>
+            <h3>Recent Records</h3>
+            <p>Review your latest health documents and visits.</p>
+          </div>
+          <button class="btn-lime" id="toggleRecordForm" type="button">Add Record</button>
+        </div>
+
+        <form id="recordForm" class="record-form">
+          <div class="record-form-row">
+            <div>
+              <label for="recordName">Record name</label>
+              <input id="recordName" name="recordName" type="text" placeholder="e.g. Lipid profile" required />
+            </div>
+            <div>
+              <label for="recordType">Type</label>
+              <select id="recordType" name="recordType">
+                <option value="Lab report">Lab report</option>
+                <option value="Clinical visit">Clinical visit</option>
+                <option value="Prescription">Prescription</option>
+                <option value="Imaging">Imaging</option>
+              </select>
+            </div>
+          </div>
+          <div class="record-form-row" style="margin-top:12px;">
+            <div>
+              <label for="recordDate">Date</label>
+              <input id="recordDate" name="recordDate" type="text" placeholder="18 Sep 2026" />
+            </div>
+            <div>
+              <label for="recordStatus">Status</label>
+              <select id="recordStatus" name="recordStatus">
+                <option value="Reviewed">Reviewed</option>
+                <option value="Follow-up">Follow-up</option>
+                <option value="Pending">Pending</option>
+              </select>
+            </div>
+          </div>
+          <div style="margin-top:12px;">
+            <label for="recordSummary">Summary</label>
+            <input id="recordSummary" name="recordSummary" type="text" placeholder="Short summary of the record" />
+          </div>
+          <div class="record-form-actions">
+            <button class="btn-outline" type="button" id="cancelRecordForm">Cancel</button>
+            <button class="btn-lime" type="submit">Save Record</button>
+          </div>
+        </form>
+
+        <div id="records"><p class="record-empty">Loading records...</p></div>
+      </section>
+
+      <aside class="record-card">
+        <h3 style="font-size:18px;font-weight:800;letter-spacing:-0.3px;">Health Record Summary</h3>
+        <p class="section-subtitle" style="margin-top:5px;">Updated from your recent activity</p>
+        <div class="summary-box">
+          <strong id="recordsTotal">0</strong>
+          <span>Records available</span>
+        </div>
+        <div class="summary-box">
+          <strong id="recordsReviewed">0</strong>
+          <span>Reports reviewed</span>
+        </div>
+        <div class="summary-box">
+          <strong id="recordsFollowUp">0</strong>
+          <span>Follow-up due</span>
+        </div>
+        <div class="notice">Your records stay available for quick reference while you use ArogyaX.</div>
+      </aside>
+    </div>
+  </main>
+
+  <script>
+    const recordsContainer = document.getElementById('records');
+    const recordForm = document.getElementById('recordForm');
+    const toggleRecordFormBtn = document.getElementById('toggleRecordForm');
+    const cancelRecordFormBtn = document.getElementById('cancelRecordForm');
+
+    function updateSummary(records) {
+      const total = records.length;
+      const reviewed = records.filter(r => r.status === 'Reviewed').length;
+      const followUp = records.filter(r => r.status === 'Follow-up').length;
+
+      document.getElementById('recordsTotal').textContent = total;
+      document.getElementById('recordsReviewed').textContent = reviewed;
+      document.getElementById('recordsFollowUp').textContent = followUp;
+    }
+
+    function renderRecords(records) {
+      if (!records.length) {
+        recordsContainer.innerHTML = '<p class="record-empty">No records yet. Add your first health record to get started.</p>';
+        updateSummary([]);
+        return;
+      }
+
+      recordsContainer.innerHTML = records.map((record) => {
+        const isFollowUp = record.status === 'Follow-up';
+        return `
+          <div class="record-row" data-id="${record.id}" tabindex="0" role="button" aria-label="Open ${record.name}">
+            <div class="record-icon">▣</div>
+            <div class="record-body">
+              <strong>${record.name}</strong>
+              <small>${record.type} · ${record.date}<br>${record.summary}</small>
+            </div>
+            <span class="status-chip ${isFollowUp ? 'follow' : ''}">${record.status}</span>
+          </div>
+        `;
+      }).join('');
+
+      updateSummary(records);
+
+      recordsContainer.querySelectorAll('.record-row').forEach((row) => {
+        row.addEventListener('click', () => {
+          recordsContainer.querySelectorAll('.record-row').forEach(item => item.classList.remove('selected'));
+          row.classList.add('selected');
+        });
+
+        row.addEventListener('keydown', (event) => {
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            row.click();
+          }
+        });
+      });
+    }
+
+    function refreshRecords() {
+      fetch('/api/records', { credentials: 'include' })
+        .then((response) => response.json())
+        .then((data) => {
+          renderRecords(Array.isArray(data.records) ? data.records : []);
+        })
+        .catch(() => {
+          recordsContainer.innerHTML = '<p class="record-empty">Unable to load records right now.</p>';
+        });
+    }
+
+    toggleRecordFormBtn.addEventListener('click', () => {
+      recordForm.classList.toggle('visible');
+      if (recordForm.classList.contains('visible')) {
+        document.getElementById('recordName').focus();
+      }
+    });
+
+    cancelRecordFormBtn.addEventListener('click', () => {
+      recordForm.reset();
+      recordForm.classList.remove('visible');
+    });
+
+    recordForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const payload = {
+        name: document.getElementById('recordName').value.trim(),
+        type: document.getElementById('recordType').value,
+        date: document.getElementById('recordDate').value.trim() || new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        status: document.getElementById('recordStatus').value,
+        summary: document.getElementById('recordSummary').value.trim() || 'Record added from the dashboard.'
+      };
+
+      fetch('/api/records', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      })
+      .then((response) => response.json())
+      .then((data) => {
+        recordForm.reset();
+        recordForm.classList.remove('visible');
+        if (Array.isArray(data.records)) {
+          renderRecords(data.records);
+        } else {
+          refreshRecords();
+        }
+      })
+      .catch(() => {
+        alert('Unable to save the record right now. Please try again.');
+      });
+    });
+
+    refreshRecords();
+  </script>
+</body>
+</html>

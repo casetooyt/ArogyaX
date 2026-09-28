@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX Care Hub</title>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <style>
+    .main-content { margin-left:68px; padding:82px 24px 36px; }
+    .care-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-top:22px; }
+    .care-card { background:var(--card-bg); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); }
+    .care-card.wide { grid-column:1/-1; }
+    .care-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+    .care-head h3 { font-size:17px; font-weight:800; }
+    .care-head p { color:var(--gray-500); font-size:12px; margin-top:4px; }
+    .metric-row { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .metric { background:var(--gray-100); border-radius:12px; padding:12px; }
+    .metric strong { display:block; font-size:22px; margin-bottom:3px; }
+    .metric span { color:var(--gray-500); font-size:11px; }
+    .choice-row { display:flex; gap:8px; flex-wrap:wrap; }
+    .choice { border:1px solid var(--gray-200); border-radius:999px; padding:8px 14px; font-size:12px; font-weight:700; cursor:pointer; }
+    .choice.active { background:var(--lime); border-color:var(--lime); }
+    .field { width:100%; border:1px solid var(--gray-200); border-radius:10px; padding:10px 12px; margin-top:10px; outline:none; }
+    .field:focus { border-color:var(--lime); }
+    .timeline { display:grid; gap:12px; }
+    .timeline-item { display:grid; grid-template-columns:86px 14px 1fr; gap:10px; align-items:start; }
+    .timeline-item time { color:var(--gray-500); font-size:11px; padding-top:2px; }
+    .timeline-dot { width:12px; height:12px; border-radius:50%; background:var(--lime); border:3px solid var(--dark); margin-top:2px; }
+    .timeline-item strong { font-size:13px; }
+    .timeline-item p { color:var(--gray-500); font-size:12px; margin-top:3px; }
+    .facility { display:flex; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--gray-200); }
+    .facility:last-child { border-bottom:0; }
+    .facility strong { font-size:13px; }
+    .facility small { display:block; color:var(--gray-500); margin-top:4px; }
+    .status { font-size:11px; font-weight:700; color:#16A34A; }
+    .status.closed { color:var(--orange); }
+    .table-wrap { overflow:auto; }
+    table { width:100%; border-collapse:collapse; font-size:12px; }
+    th, td { padding:10px 8px; text-align:left; border-bottom:1px solid var(--gray-200); }
+    th { color:var(--gray-500); font-size:11px; }
+    .notice { padding:11px 12px; background:var(--lime-light); border:1px solid var(--lime); border-radius:10px; font-size:12px; margin-top:12px; }
+    .video-call-panel { margin-top:12px; padding:12px; background:#101820; border-radius:12px; color:#fff; }
+    .video-stage { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:8px; margin-top:10px; }
+    .video-stage video { width:100%; aspect-ratio:16/10; object-fit:cover; background:#27313a; border-radius:8px; }
+    @media (max-width:900px) { .sidebar{display:none!important}.main-content{margin-left:0;padding:84px 16px 28px}.care-grid{grid-template-columns:1fr}.metric-row{grid-template-columns:repeat(2,1fr)} }
+  </style>
+</head>
+<body>
+  <nav class="navbar"><a href="/" class="brand"><div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div><div class="brand-text"><h1>ArogyaX</h1><span>Health Platform</span></div></a><div class="nav-right"><a class="btn-outline" href="/page/chat">AI Chat</a><a class="btn-lime" href="/auth/profile">Profile</a></div></nav>
+  <aside class="sidebar" style="position:fixed;left:0;top:58px;bottom:0;width:68px;background:var(--card-bg);border-right:1px solid var(--gray-200);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px;z-index:90">
+    <a href="/" class="sidebar-item"><span>⌂</span><span>Home</span></a>
+    <a href="/page/chat" class="sidebar-item"><span>✦</span><span>AI Chat</span></a>
+    <a href="/page/reports" class="sidebar-item"><span>▣</span><span>Reports</span></a>
+    <a href="/page/care" class="sidebar-item active"><span>❤</span><span>Care Hub</span></a>
+    <a href="/page/knowledge" class="sidebar-item"><span>?</span><span>Knowledge</span></a>
+  </aside>
+  <main class="main-content">
+    <div class="section-header"><div class="section-icon">❤</div><div><h2 class="section-title">ArogyaX Care Hub</h2><p class="section-subtitle">Daily care, trusted follow-ups, nearby support and connected health services</p></div><span class="section-badge"><span class="dot"></span>Connected care</span></div>
+    <div class="care-grid">
+      <section class="care-card"><div class="care-head"><div><h3>Daily Health Check-in</h3><p>Record how you feel in under a minute.</p></div><span class="lime-pill">Today</span></div><div class="choice-row" data-choice="mood"><button class="choice active">Good</button><button class="choice">Okay</button><button class="choice">Low</button></div><div style="margin-top:14px;font-size:12px;font-weight:700">Energy</div><div class="choice-row" data-choice="energy" style="margin-top:8px"><button class="choice active">High</button><button class="choice">Moderate</button><button class="choice">Low</button></div><textarea id="checkinNotes" class="field" rows="2" placeholder="Any symptom or note?"></textarea><button id="checkinBtn" class="btn-lime" style="margin-top:10px">Save Check-in</button><div id="checkinResult" class="notice" hidden></div></section>
+      <section class="care-card"><div class="care-head"><div><h3>Verify Medicine</h3><p>Scan QR/DataMatrix or upload a clear medicine photo to check identity and expiry.</p></div><span class="lime-pill" id="medicineVerifyBadge">Ready</span></div><div style="display:grid;gap:10px"><input id="verifyMedicineName" class="field" placeholder="Medicine name" /><input id="verifyMedicineIdentifier" class="field" placeholder="QR / DataMatrix / serial code" /><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input id="verifyMedicineBatch" class="field" placeholder="Batch / Lot number" /><input id="verifyMedicineManufacturer" class="field" placeholder="Manufacturer" /></div><input id="verifyMedicineExpiry" class="field" placeholder="Expiry (MM/YYYY or YYYY-MM-DD)" /><label for="medicinePhoto" class="btn-outline" style="justify-content:center">Upload medicine photo</label><input id="medicinePhoto" type="file" accept="image/*" capture="environment" style="display:none" /><div id="medicinePhotoStatus" style="font-size:12px;color:var(--gray-500)">Supports JPG, PNG, WebP, GIF, BMP and mobile camera photos. For HEIC/TIFF, export as JPG first.</div><div style="display:flex;gap:8px;flex-wrap:wrap"><button id="scanMedicineBtn" class="btn-outline">Scan QR</button><button id="verifyMedicineBtn" class="btn-lime">Verify Medicine</button><button id="checkAvailabilityBtn" class="btn-outline">Check Availability</button></div><video id="medicineCamera" autoplay playsinline muted style="display:none;width:100%;max-height:220px;border-radius:12px;background:#101820;margin-top:6px"></video><div id="medicineVerifyResult" class="notice" hidden></div><div id="medicineAvailability" style="display:grid;gap:8px"></div></div></section>
+      <section class="care-card"><div class="care-head"><div><h3>Medicine Reminder</h3><p>Keep doses and schedules in one place.</p></div><span class="lime-pill">Private</span></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input id="medicineName" class="field" placeholder="Medicine name" /><input id="medicineDose" class="field" placeholder="Dose e.g. 500 mg" /></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input id="medicineTime" class="field" type="time" /><select id="medicineFrequency" class="field"><option>Once daily</option><option>Twice daily</option><option>After meals</option><option>As prescribed</option></select></div><button id="medicineBtn" class="btn-lime" style="margin-top:10px">Add Reminder</button><div id="medicineResult" class="notice" hidden></div><div id="medicineList" style="margin-top:8px"></div></section>
+      <section class="care-card"><div class="care-head"><div><h3>Voice + Multilingual Assistant</h3><p>Ask by voice or text and receive a spoken answer.</p></div><span class="lime-pill" id="voiceStatus">Ready</span></div><div style="display:flex;align-items:center;gap:16px"><button id="voiceBtn" class="icon-btn" title="Start voice input" style="width:58px;height:58px;background:var(--lime);font-size:24px">â—‰</button><div><strong id="voiceText">Tap the microphone to speak</strong><p style="color:var(--gray-500);font-size:12px;margin-top:5px">Use Chrome or Edge for microphone input.</p></div></div><select id="voiceLang" class="field"></select><textarea id="voiceQuery" class="field" rows="2" placeholder="Type your health question here..."></textarea><button id="voiceAskBtn" class="btn-lime" style="margin-top:10px">Ask Assistant</button><div id="voiceReply" class="notice" hidden></div></section>
+      <section class="care-card"><div class="care-head"><div><h3>Toll-Free Health Line</h3><p>For rural users without a smartphone: choose a language, describe symptoms, and get guided help.</p></div><span class="lime-pill" id="tollfreeStatus">Ready</span></div><div style="display:flex;align-items:center;gap:12px;padding:12px;background:var(--gray-100);border-radius:10px"><div style="font-size:25px">☎</div><div><strong>1800-ORBIX-HEALTH</strong><small style="display:block;color:var(--gray-500);margin-top:3px">Toll-free health helpline for voice support</small></div></div><select id="tollfreeLang" class="field"></select><input id="tollfreeProblem" class="field" placeholder="Example: I have fever and weakness" /><div class="choice-row" style="margin-top:10px"><button class="choice active" data-mode="voice">Voice call</button><button class="choice" data-mode="sms">SMS follow-up</button></div><button id="tollfreeBtn" class="btn-lime" style="margin-top:10px">Start Toll-Free Check</button><div id="tollfreeResult" class="notice" hidden></div><div id="tollfreeHistory" style="margin-top:12px;display:grid;gap:8px"></div></section>
+      <section class="care-card wide"><div class="care-head"><div><h3>Health Timeline & Trend Analysis</h3><p>One view for check-ins, reports, vitals and care events.</p></div><a href="/page/analytics" class="btn-outline">Open Analytics</a></div><div id="timeline" class="timeline"><div>Loading timeline...</div></div></section>
+      <section class="care-card"><div class="care-head"><div><h3>Trusted Doctor & Hospital Finder</h3><p>Get nearby government or private care ranked by trust, specialty, experience and emergency readiness.</p></div><span class="lime-pill">Verified directory</span></div><input id="facilityQuery" class="field" list="citySuggestions" placeholder="Enter rural area, village, town or city" /><datalist id="citySuggestions"></datalist><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><select id="doctorSpecialty" class="field"><option value="all">All specialties</option><option value="general physician">General Physician</option><option value="cardiologist">Cardiologist</option><option value="nutritionist">Nutritionist</option><option value="paediatrician">Paediatrician</option></select><select id="facilityType" class="field"><option value="all">Government + Private</option><option value="government">Government only</option><option value="private">Private only</option></select></div><label style="display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;margin-top:8px"><input id="emergencyCare" type="checkbox" /> Emergency: prioritize 24x7 emergency-ready facilities</label><button id="facilityBtn" class="btn-lime" style="margin-top:10px">Recommend Care</button><div id="facilities" style="margin-top:8px"><div class="notice">Enter your area or city to find trusted nearby care.</div></div></section>
+      <section class="care-card"><div class="care-head"><div><h3>Low-Connectivity / Offline Mode</h3><p>Keep the care checklist available without a network.</p></div><span id="offlineStatus" class="lime-pill">Checking...</span></div><div class="notice">Your care checklist is saved on this device and stays available offline for urgent guidance.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+          <button id="offlineBtn" class="btn-outline">Enable Offline Mode</button>
+          <button id="syncOfflineBtn" class="btn-lime">Sync queued data</button>
+        </div>
+        <div id="offlineWorkspace" style="display:none;margin-top:12px;border:1px solid var(--lime);border-radius:12px;padding:12px;background:var(--lime-light)">
+          <div style="font-weight:800;margin-bottom:8px">Offline checklist</div>
+          <ul style="padding-left:18px;margin:0 0 10px;line-height:1.7;font-size:12px">
+            <li>Call 112 for severe breathing trouble, chest pain, fainting, heavy bleeding.</li>
+            <li>Call 108 for emergency ambulance help.</li>
+            <li>Save patient notes, medicines, and symptoms locally.</li>
+            <li>When the signal returns, tap “Sync queued data” to upload the saved entries.</li>
+          </ul>
+          <div id="offlineChecklist" style="display:grid;gap:8px"></div>
+          <div id="offlineQueueStatus" style="font-size:12px;color:var(--gray-500);margin-top:8px">No queued items yet.</div>
+        </div>
+      </section>
+      <section class="care-card"><div class="care-head"><div><h3>ASHA / Health Worker Dashboard</h3><p>Community care workload at a glance.</p></div><div style="display:flex;align-items:center;gap:8px"><a href="/page/asha" class="btn-outline">Open dashboard</a><span class="green-pill">Online</span></div></div><div id="ashaStats" class="metric-row"></div><div id="ashaPatients" style="margin-top:12px"></div></section>
+    </div>
+  </main>
+  <script>
+    const $ = id => document.getElementById(id);
+    const supportedLanguages = [
+      ['en', 'English', 'en-IN'], ['as', 'অসমীয়া', 'as-IN'], ['bn', 'বাংলা', 'bn-IN'], ['brx', 'बड़ो', 'brx-IN'],
+      ['doi', 'डोगरी', 'doi-IN'], ['gu', 'ગુજરાતી', 'gu-IN'], ['hi', 'हिन्दी', 'hi-IN'], ['kn', 'ಕನ್ನಡ', 'kn-IN'],
+      ['ks', 'कॉशुर', 'ks-IN'], ['kok', 'कोंकणी', 'kok-IN'], ['mai', 'मैथिली', 'mai-IN'], ['ml', 'മലയാളം', 'ml-IN'],
+      ['mni', 'মৈতৈলোন্', 'mni-IN'], ['mr', 'मराठी', 'mr-IN'], ['ne', 'नेपाली', 'ne-IN'], ['or', 'ଓଡ଼ିଆ', 'or-IN'],
+      ['pa', 'ਪੰਜਾਬੀ', 'pa-IN'], ['sa', 'संस्कृतम्', 'sa-IN'], ['sat', 'ᱥᱟᱱᱛᱟᱲᱤ', 'sat-IN'], ['sd', 'سنڌي', 'sd-IN'],
+      ['ta', 'தமிழ்', 'ta-IN'], ['te', 'తెలుగు', 'te-IN'], ['ur', 'اردو', 'ur-IN'], ['es', 'Español', 'es-ES'], ['fr', 'Français', 'fr-FR']
+    ];
+    const languageOptionMarkup = supportedLanguages.map(([code, label, voiceCode]) => `<option value="${voiceCode}">${label}</option>`).join('');
+    $('voiceLang').innerHTML = languageOptionMarkup;
+    $('tollfreeLang').innerHTML = supportedLanguages.map(([code, label]) => `<option value="${code}">${label}</option>`).join('');
+    const citySuggestions = ['Patia', 'Bhubaneswar', 'Saheed Nagar', 'Khandagiri', 'Cuttack', 'CDA Sector 6', 'CDA Sector 9', 'Old Town', 'Chandrasekharpur', 'Rasulgarh', 'Unit 3', 'Airport Road', 'Nayapalli', 'Bargada', 'Baramunda', 'Jagamara', 'Dumduma', 'Mancheswar', 'VSS Nagar', 'Balianta', 'Jatni', 'Puri', 'Grand Road', 'Rourkela', 'Civil Township', 'Sambalpur', 'Ainthapali', 'Berhampur', 'Gandhi Nagar'];
+
+    function populateCitySuggestions() {
+      const datalist = $('citySuggestions');
+      datalist.innerHTML = citySuggestions.map(city => `<option value="${city}"></option>`).join('');
+    }
+
+    document.querySelectorAll('[data-choice]').forEach(group => group.addEventListener('click', e => { const button=e.target.closest('.choice'); if(!button)return; group.querySelectorAll('.choice').forEach(item=>item.classList.remove('active')); button.classList.add('active'); }));
+
+    const OFFLINE_KEY = 'orbix-offline';
+    const OFFLINE_CHECKINS_KEY = 'orbix-offline-checkins';
+    const OFFLINE_MEDICINES_KEY = 'orbix-offline-medicines';
+
+    function isOfflineModeEnabled() { return localStorage.getItem(OFFLINE_KEY) === 'true'; }
+
+    function getOfflineQueue() {
+      const checkins = JSON.parse(localStorage.getItem(OFFLINE_CHECKINS_KEY) || '[]');
+      const medicines = JSON.parse(localStorage.getItem(OFFLINE_MEDICINES_KEY) || '[]');
+      return { checkins, medicines };
+    }
+
+    function renderOfflineChecklist() {
+      const { checkins, medicines } = getOfflineQueue();
+      const items = [
+        ...checkins.slice(0, 2).map(item => `Check-in: ${item.mood || 'Good'} · ${item.notes || 'No symptom note'}`),
+        ...medicines.slice(0, 2).map(item => `Medicine: ${item.name || 'Reminder'} · ${item.time || 'No time'}`),
+        'Emergency: call 112 or 108 if severe symptoms appear.',
+        'Local summary: keep symptoms, medicines and time saved on this device.'
+      ];
+      $('offlineChecklist').innerHTML = items.map(item => `<div class="facility" style="padding:8px 10px;border:1px solid var(--gray-200);border-radius:10px;background:rgba(255,255,255,0.6)"><strong style="font-size:12px">${item}</strong></div>`).join('');
+      const totalQueued = checkins.length + medicines.length;
+      $('offlineQueueStatus').textContent = totalQueued ? `Queued records: ${totalQueued}. Ready to sync when the signal returns.` : 'No queued items yet.';
+      $('offlineWorkspace').style.display = isOfflineModeEnabled() ? 'block' : 'none';
+    }
+
+    function updateOfflineUI() {
+      const enabled = isOfflineModeEnabled();
+      $('offlineStatus').textContent = enabled ? 'Enabled' : 'Available';
+      $('offlineStatus').className = enabled ? 'green-pill' : 'lime-pill';
+      renderOfflineChecklist();
+    }
+
+    function saveLocalCheckin(payload) {
+      const existing = JSON.parse(localStorage.getItem(OFFLINE_CHECKINS_KEY) || '[]');
+      const record = { ...payload, savedAt: new Date().toISOString() };
+      existing.unshift(record);
+      localStorage.setItem(OFFLINE_CHECKINS_KEY, JSON.stringify(existing.slice(0, 20)));
+      localStorage.setItem('orbix-checkin', JSON.stringify(record));
+      renderOfflineChecklist();
+    }
+
+    function saveLocalMedicine(payload) {
+      const existing = JSON.parse(localStorage.getItem(OFFLINE_MEDICINES_KEY) || '[]');
+      existing.unshift({ ...payload, id: payload.id || `offline-med-${Date.now()}`, savedAt: new Date().toISOString() });
+      localStorage.setItem(OFFLINE_MEDICINES_KEY, JSON.stringify(existing.slice(0, 20)));
+      renderOfflineChecklist();
+    }
+
+    async function syncOfflineQueue() {
+      if (!navigator.onLine) {
+        $('offlineQueueStatus').textContent = 'Offline: cannot sync yet. The queue is waiting for network.';
+        return { success: false };
+      }
+      const { checkins, medicines } = getOfflineQueue();
+      if (!checkins.length && !medicines.length) {
+        $('offlineQueueStatus').textContent = 'No queued records to sync.';
+        return { success: true, synced: 0 };
+      }
+      try {
+        const response = await fetch('/api/offline/sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ checkins, medicines })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          localStorage.removeItem(OFFLINE_CHECKINS_KEY);
+          localStorage.removeItem(OFFLINE_MEDICINES_KEY);
+          $('offlineQueueStatus').textContent = `Synced: ${data.synced.checkins + data.synced.medicines} queued items.`;
+          renderOfflineChecklist();
+          return { success: true, synced: data.synced };
+        }
+        $('offlineQueueStatus').textContent = data.message || 'Sync failed. Please try again later.';
+        return { success: false };
+      } catch (error) {
+        console.error(error);
+        $('offlineQueueStatus').textContent = 'Sync failed. The queue remains stored on this device.';
+        return { success: false };
+      }
+    }
+
+    async function loadTimeline(){ const data=await fetch('/api/timeline').then(r=>r.json()); $('timeline').innerHTML=data.events.map(e=>`<div class="timeline-item"><time>${e.date}</time><span class="timeline-dot"></span><div><strong>${e.title}</strong><p>${e.detail}</p></div></div>`).join(''); }
+    async function loadFacilities(){ const area=$('facilityQuery').value.trim(); if(!area){ $('facilities').innerHTML='<div class="notice">Please enter an area or city first.</div>'; $('facilityQuery').focus(); return; } const button=$('facilityBtn'); button.disabled=true; button.textContent='Finding care...'; try { const q=encodeURIComponent(area); const specialty=encodeURIComponent($('doctorSpecialty').value); const facilityType=encodeURIComponent($('facilityType').value); const emergency=$('emergencyCare').checked; const response=await fetch(`/api/doctor-recommendations?q=${q}&specialty=${specialty}&facility_type=${facilityType}&emergency=${emergency}`); const data=await response.json(); $('facilities').innerHTML=data.recommendations?.length?`<div class="notice" style="background:var(--lime-light)">${emergency?'Emergency-ready results are ranked first. For severe symptoms, call local emergency services immediately.':'Results are ranked by verified status, specialty, experience and distance.'}</div>`+data.recommendations.map(d=>{
+        const location = d.location || [d.address, d.area, d.city, d.state, d.pincode].filter(Boolean).join(', ');
+      const destination = d.latitude && d.longitude ? `https://www.openstreetmap.org/?mlat=${d.latitude}&mlon=${d.longitude}#map=17/${d.latitude}/${d.longitude}` : `https://www.openstreetmap.org/search?query=${encodeURIComponent(location)}`;
+      const trust = d.verified ? 'Verified profile' : 'Not independently verified';
+      const emergencyInfo = d.emergency_capable ? (d.open_24x7 ? '24x7 emergency-ready' : 'Emergency capable') : 'Routine care';
+      return `<div class="facility" style="align-items:flex-start"><div><strong>${d.name || 'Healthcare provider'}</strong><small>${d.specialty} · ${d.facility} · ${d.facility_type}<br>${trust} · ${d.experience_years || 0} years experience · ${emergencyInfo}<br>📍 ${location}<br><a href="tel:${(d.phone || '').replace(/\s/g,'')}" style="color:var(--dark);font-weight:700">${d.phone || 'Phone not listed'}</a> · ${d.hours || 'Hours not listed'} · ${d.fee || 'Contact provider'}<br>${d.distance || 'Nearby'} away<br><em>${d.recommendation_reason || ''}</em><div style="display:flex;gap:6px;margin-top:8px"><a href="tel:${(d.phone || '').replace(/\s/g,'')}" class="choice" style="text-decoration:none">Call</a><a href="${destination}" target="_blank" rel="noopener" class="choice" style="text-decoration:none">Open map</a></div></small></div><span class="status ${d.available?'':'closed'}">${d.available?'Available':'Busy'}</span></div>`;
+    }).join(''):`<div class="notice">${data.message || 'No trusted provider found. Try a nearby town, district hospital or broader area.'}</div>`; } catch (error) { console.error('Doctor recommendation failed:', error); $('facilities').innerHTML='<div class="notice">Doctor recommendation service is temporarily unavailable. Please try again or call emergency services for urgent symptoms.</div>'; } finally { button.disabled=false; button.textContent='Recommend Care'; } }
+    async function loadMedicines(){ const data=await fetch('/api/medicines').then(r=>r.json()); $('medicineList').innerHTML=data.medicines.length?data.medicines.map(m=>`<div class="facility"><div><strong>${m.name} · ${m.dose}</strong><small>${m.time} · ${m.frequency}</small></div><button class="choice" data-remove-medicine="${m.id}">Remove</button></div>`).join(''):'<p style="font-size:12px;color:var(--gray-500);padding:8px 0">No reminders added yet.</p>'; }
+    async function loadAsha(){ const data=await fetch('/api/asha').then(r=>r.json()); $('ashaStats').innerHTML=Object.entries(data.stats).map(([key,value])=>`<div class="metric"><strong>${value}</strong><span>${key}</span></div>`).join(''); $('ashaPatients').innerHTML=data.patients.map(p=>`<div class="facility"><div><strong>${p.name}</strong><small>${p.condition} &middot; Last: ${p.last}</small></div><span class="${p.status==='Urgent'?'orange-pill':'green-pill'}">${p.status}</span></div>`).join(''); }
+    document.querySelectorAll('[data-choice]').forEach(group=>group.dataset.selected=()=>group.querySelector('.choice.active')?.textContent);
+    $('checkinBtn').addEventListener('click',async()=>{const groups=document.querySelectorAll('[data-choice]'); const payload={mood:groups[0].querySelector('.active').textContent,energy:groups[1].querySelector('.active').textContent,notes:$('checkinNotes').value}; if (!navigator.onLine || isOfflineModeEnabled()) { saveLocalCheckin(payload); $('checkinResult').hidden=false; $('checkinResult').textContent='Offline mode saved your health check-in locally on this device.'; updateOfflineUI(); return; }
+      const data=await fetch('/api/checkin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}).then(r=>r.json()); $('checkinResult').hidden=false; $('checkinResult').textContent=`Saved at ${data.checkin.date}. Mood: ${data.checkin.mood}, energy: ${data.checkin.energy}.`; localStorage.setItem('orbix-checkin',JSON.stringify(data.checkin)); });
+    $('facilityBtn').addEventListener('click',loadFacilities); $('facilityQuery').addEventListener('keydown',e=>{if(e.key==='Enter')loadFacilities();});
+    $('medicineBtn').addEventListener('click',async()=>{const payload={name:$('medicineName').value,dose:$('medicineDose').value,time:$('medicineTime').value,frequency:$('medicineFrequency').value}; if (!navigator.onLine || isOfflineModeEnabled()) { saveLocalMedicine(payload); $('medicineResult').hidden=false; $('medicineResult').textContent='Offline medicine reminder saved on this device.'; updateOfflineUI(); return; }
+      const response=await fetch('/api/medicines',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)}); const data=await response.json(); $('medicineResult').hidden=false; $('medicineResult').textContent=data.success?`${data.medicine.name} reminder saved for ${data.medicine.time}.`:(data.message||'Please complete all medicine fields.'); if(data.success){$('medicineName').value='';$('medicineDose').value='';$('medicineTime').value='';loadMedicines(); if('Notification' in window&&Notification.permission==='default')Notification.requestPermission();}});
+    $('medicineList').addEventListener('click',async e=>{const button=e.target.closest('[data-remove-medicine]');if(!button)return;await fetch('/api/medicines',{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:button.dataset.removeMedicine})});loadMedicines();});
+    $('offlineBtn').addEventListener('click',()=>{localStorage.setItem(OFFLINE_KEY,'true'); updateOfflineUI();});
+    $('syncOfflineBtn').addEventListener('click', async ()=> { await syncOfflineQueue(); });
+    updateOfflineUI();
+    window.addEventListener('online', () => {
+      updateOfflineUI();
+      if (isOfflineModeEnabled()) {
+        syncOfflineQueue();
+      }
+    });
+    window.addEventListener('offline', updateOfflineUI);
+    const voiceLanguageCode = () => $('voiceLang').value.split('-')[0];
+    function speakVoiceReply(text) { if (!('speechSynthesis' in window)) return; window.speechSynthesis.cancel(); const utterance = new SpeechSynthesisUtterance(text); utterance.lang = $('voiceLang').value; utterance.rate = 0.95; window.speechSynthesis.speak(utterance); }
+    async function askVoiceAssistant(text) {
+      const question = text.trim();
+      if (!question) { $('voiceReply').hidden=false; $('voiceReply').textContent='Please speak or type a question first.'; return; }
+      $('voiceStatus').textContent='Thinking...'; $('voiceReply').hidden=false; $('voiceReply').textContent='Preparing your answer...';
+      try {
+        const response = await fetch('/api/chat', {method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include', body:JSON.stringify({message:question, language:voiceLanguageCode()})});
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Assistant request failed');
+        $('voiceReply').textContent=data.reply; $('voiceStatus').textContent='Ready'; speakVoiceReply(data.reply);
+      } catch (error) { $('voiceStatus').textContent='Error'; $('voiceReply').textContent='Assistant could not respond. Please try again.'; console.error(error); setTimeout(()=>{$('voiceStatus').textContent='Ready';},2000); }
+    }
+    $('voiceAskBtn').addEventListener('click',()=>askVoiceAssistant($('voiceQuery').value));
+    $('voiceQuery').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();askVoiceAssistant($('voiceQuery').value);}});
+    $('voiceBtn').addEventListener('click',()=>{const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition; if(!SpeechRecognition){$('voiceReply').hidden=false;$('voiceReply').textContent='Voice input is not supported in this browser. Type your question below or use Chrome/Edge.';return;} const recognition=new SpeechRecognition(); recognition.lang=$('voiceLang').value; recognition.interimResults=false; recognition.maxAlternatives=1; recognition.onstart=()=>{$('voiceStatus').textContent='Listening...';$('voiceText').textContent='Speak now';}; recognition.onresult=e=>{const text=e.results[0][0].transcript; $('voiceQuery').value=text; $('voiceText').textContent=text; askVoiceAssistant(text);}; recognition.onerror=e=>{$('voiceStatus').textContent='Ready';$('voiceReply').hidden=false;$('voiceReply').textContent=e.error==='not-allowed'?'Microphone permission was denied. Type your question below.':'Could not hear you. Please try again.';}; recognition.onend=()=>{if($('voiceStatus').textContent==='Listening...')$('voiceStatus').textContent='Ready';}; recognition.start();});
+    async function loadTollfreeHistory() {
+      try {
+        const response = await fetch('/api/tollfree/logs');
+        const data = await response.json();
+        const logs = data.logs || [];
+        const container = $('tollfreeHistory');
+
+        if (!logs.length) {
+          container.innerHTML = '<div class="notice">No call attempts yet. This help line is ready for voice-based support.</div>';
+          return;
+        }
+
+        container.innerHTML = logs.slice(0, 4).map(log => `
+          <div class="facility" style="padding:10px 12px;border:1px solid var(--gray-200);border-radius:10px;background:var(--gray-50)">
+            <div>
+              <strong>${log.emergency ? 'Emergency' : 'Health check'} · ${log.language.toUpperCase()}</strong>
+              <small>${log.problem || 'No problem entered'}<br>${log.created_at}</small>
+            </div>
+            <span class="${log.emergency ? 'orange-pill' : 'green-pill'}">${log.mode || 'voice'}</span>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    $('tollfreeBtn').addEventListener('click', async () => {
+      const lang = $('tollfreeLang').value;
+      const problem = $('tollfreeProblem').value.trim();
+      const result = $('tollfreeResult');
+      const mode = document.querySelector('[data-mode].active')?.dataset.mode || 'voice';
+
+      $('tollfreeStatus').textContent = 'Connecting...';
+
+      if (!problem) {
+        result.hidden = false;
+        result.textContent = 'Please tell us your health problem first.';
+        result.style.background = 'var(--red-light)';
+        $('tollfreeStatus').textContent = 'Waiting';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/tollfree', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ language: lang, problem, mode })
+        });
+        const data = await response.json();
+
+        result.hidden = false;
+        result.textContent = data.message || 'We could not process your call request right now.';
+        result.style.background = data.emergency ? 'var(--red-light)' : 'var(--lime-light)';
+        $('tollfreeStatus').textContent = data.emergency ? 'Emergency' : 'Connected';
+
+        await fetch('/api/tollfree/logs', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            id: data.call_id || `CALL-${Date.now()}`,
+            language: data.language,
+            problem: data.problem,
+            mode,
+            emergency: !!data.emergency,
+            message: data.message,
+            created_at: new Date().toLocaleString()
+          })
+        });
+
+        await loadTollfreeHistory();
+
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const speech = new SpeechSynthesisUtterance(data.message);
+          speech.lang = lang === 'hi' ? 'hi-IN' : lang === 'or' ? 'or-IN' : lang === 'es' ? 'es-ES' : lang === 'fr' ? 'fr-FR' : 'en-IN';
+          speech.rate = 0.95;
+          window.speechSynthesis.speak(speech);
+        }
+      } catch (error) {
+        result.hidden = false;
+        result.textContent = 'The toll-free health line could not be processed. Please try again.';
+        result.style.background = 'var(--red-light)';
+        $('tollfreeStatus').textContent = 'Error';
+        console.error(error);
+      }
+    });
+
+    document.querySelectorAll('[data-mode]').forEach(button => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('[data-mode]').forEach(item => item.classList.remove('active'));
+        button.classList.add('active');
+      });
+    });
+
+    async function loadMedicineAvailability(medicineName = $('verifyMedicineName').value.trim()) {
+      const medicine = medicineName || 'Paracetamol 500 mg';
+      const response = await fetch(`/api/medicine/availability?medicine=${encodeURIComponent(medicine)}`);
+      const data = await response.json();
+      const facilities = data.facilities || [];
+      $('medicineAvailability').innerHTML = facilities.map(item => {
+        const statusClass = item.status === 'available' ? 'green-pill' : item.status === 'low_stock' ? 'orange-pill' : 'red-pill';
+        return `<div class="facility" style="padding:10px 12px;border:1px solid var(--gray-200);border-radius:10px;background:var(--gray-50)"><div><strong>${item.facility}</strong><small>${item.availability} · ${item.stock} · ${item.distance}</small></div><span class="${statusClass}">${item.availability}</span></div>`;
+      }).join('');
+      if (!facilities.length) {
+        $('medicineAvailability').innerHTML = '<div class="notice">No facility data found for this medicine.</div>';
+      }
+      return data;
+    }
+
+    async function verifyMedicine() {
+      const payload = {
+        medicine: $('verifyMedicineName').value.trim(),
+        identifier: $('verifyMedicineIdentifier').value.trim(),
+        batch: $('verifyMedicineBatch').value.trim(),
+        manufacturer: $('verifyMedicineManufacturer').value.trim(),
+        expiry: $('verifyMedicineExpiry').value.trim()
+      };
+      const resultBox = $('medicineVerifyResult');
+      const badge = $('medicineVerifyBadge');
+      try {
+        resultBox.hidden = false;
+        resultBox.textContent = 'Checking the authorised registry and expiry date...';
+        resultBox.style.background = 'var(--gray-100)';
+        badge.textContent = 'Checking...';
+
+        const response = await fetch('/api/medicine/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await response.json();
+
+        if (data.status === 'verified') {
+          resultBox.style.background = 'var(--lime-light)';
+          badge.textContent = 'Verified';
+        } else if (data.status === 'unable_to_verify') {
+          resultBox.style.background = 'var(--yellow-light)';
+          badge.textContent = 'Unclear';
+        } else if (data.status === 'expired') {
+          resultBox.style.background = 'var(--red-light)';
+          badge.textContent = 'Expired';
+        } else {
+          resultBox.style.background = 'var(--red-light)';
+          badge.textContent = 'Failed';
+        }
+
+        resultBox.textContent = data.message || 'Verification update unavailable.';
+        await loadMedicineAvailability(payload.medicine);
+      } catch (error) {
+        console.error(error);
+        resultBox.hidden = false;
+        resultBox.style.background = 'var(--red-light)';
+        resultBox.textContent = 'Verification service is temporarily unavailable. Please contact a pharmacist or a licensed health professional.';
+        badge.textContent = 'Error';
+      }
+    }
+
+    function normalizeExpiryText(value) {
+      const text = String(value || '').trim().toUpperCase().replace(/[.]/g, '/');
+      const monthNames = { JAN: '01', FEB: '02', MAR: '03', APR: '04', MAY: '05', JUN: '06', JUL: '07', AUG: '08', SEP: '09', OCT: '10', NOV: '11', DEC: '12' };
+      const named = text.match(/^(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC)[A-Z]*[\s/-]+(\d{2,4})$/);
+      if (named) return `${monthNames[named[1]]}/${named[2].length === 2 ? `20${named[2]}` : named[2]}`;
+      const yearMonth = text.match(/^(\d{4})[-/](\d{1,2})(?:[-/](\d{1,2}))?$/);
+      if (yearMonth) return `${yearMonth[2].padStart(2, '0')}/${yearMonth[1]}${yearMonth[3] ? `-${yearMonth[3].padStart(2, '0')}` : ''}`;
+      const monthYear = text.match(/^(\d{1,2})[-/](\d{2,4})$/);
+      if (monthYear) return `${monthYear[1].padStart(2, '0')}/${monthYear[2].length === 2 ? `20${monthYear[2]}` : monthYear[2]}`;
+      return value;
+    }
+
+    function expiryStatus(value) {
+      const normalized = normalizeExpiryText(value);
+      const match = String(normalized).match(/^(\d{2})\/(\d{4})(?:-(\d{2}))?$/);
+      if (!match) return { state: 'unknown', label: 'Expiry date was found but could not be understood.' };
+      const expiry = new Date(Number(match[2]), Number(match[1]), Number(match[3] || 0));
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (Number(match[1]) < 1 || Number(match[1]) > 12) return { state: 'unknown', label: 'Expiry date format is invalid.' };
+      return expiry < today
+        ? { state: 'expired', label: `Expired on ${normalized}. Do not use this medicine.` }
+        : { state: 'valid', label: `Not expired. Expiry: ${normalized}.` };
+    }
+
+    function extractMedicineDetails(text) {
+      const normalized = text.replace(/\r/g, '\n').replace(/[|]/g, 'I').replace(/\bEXF\b|\bEYP\b/gi, 'EXP');
+      const details = {};
+      const expiryMatch = normalized.match(/(?:exp(?:iry)?|use\s*before|use\s*by)\s*[:#-]?\s*((?:\d{1,2}[/-]\d{4})|(?:\d{4}[/-]\d{1,2}(?:[/-]\d{1,2})?)|(?:\d{1,2}[/-]\d{1,2}[/-]\d{2,4})|(?:JAN(?:UARY)?|FEB(?:RUARY)?|MAR(?:CH)?|APR(?:IL)?|MAY|JUN(?:E)?|JUL(?:Y)?|AUG(?:UST)?|SEP(?:TEMBER)?|OCT(?:OBER)?|NOV(?:EMBER)?|DEC(?:EMBER)?)\s*\d{2,4})/i);
+      if (expiryMatch) details.expiry = normalizeExpiryText(expiryMatch[1]);
+      const batchMatch = normalized.match(/(?:batch|lot|b\.?\s*no\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9-]{3,})/i);
+      if (batchMatch) details.batch = batchMatch[1];
+      const identifierMatch = normalized.match(/\b(?:PARA|AMOX)[-\s]?\d{3}[-\s]?[A-Z]+[-\s]?\d{4}[-\s]?\d{3,}\b/i);
+      if (identifierMatch) details.identifier = identifierMatch[0].replace(/\s+/g, '-').toUpperCase();
+      if (/paracetamol/i.test(normalized)) details.medicine = 'Paracetamol 500 mg';
+      if (/amoxicillin/i.test(normalized)) details.medicine = 'Amoxicillin 500 mg';
+      const manufacturerMatch = normalized.match(/(?:mfg|manufacturer|manufactured\s*by)\s*[:#-]?\s*([A-Za-z][A-Za-z ]{3,})/i);
+      if (manufacturerMatch) details.manufacturer = manufacturerMatch[1].trim().split(/\n|\b(?:batch|lot|exp)\b/i)[0].trim();
+      return details;
+    }
+
+    function loadMedicineImage(file) {
+      return new Promise((resolve, reject) => {
+        const image = new Image();
+        const objectUrl = URL.createObjectURL(file);
+        image.onload = () => {
+          URL.revokeObjectURL(objectUrl);
+          resolve(image);
+        };
+        image.onerror = () => {
+          URL.revokeObjectURL(objectUrl);
+          reject(new Error('This image format cannot be decoded by the browser.'));
+        };
+        image.src = objectUrl;
+      });
+    }
+
+    function prepareMedicineImage(image, mode) {
+      const sourceWidth = image.naturalWidth || image.width;
+      const sourceHeight = image.naturalHeight || image.height;
+      const scale = Math.min(1.8, Math.max(1, 1800 / Math.max(sourceWidth, sourceHeight)));
+      const width = Math.round(sourceWidth * scale);
+      const height = Math.round(sourceHeight * scale);
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext('2d', { willReadFrequently: true });
+      context.imageSmoothingEnabled = true;
+      context.imageSmoothingQuality = 'high';
+      context.drawImage(image, 0, 0, width, height);
+      if (mode === 'normal') return canvas;
+
+      const pixels = context.getImageData(0, 0, width, height);
+      for (let index = 0; index < pixels.data.length; index += 4) {
+        const gray = (pixels.data[index] * 0.299) + (pixels.data[index + 1] * 0.587) + (pixels.data[index + 2] * 0.114);
+        const contrast = Math.max(0, Math.min(255, ((gray - 128) * 1.55) + 128));
+        const value = mode === 'threshold' ? (contrast > 150 ? 255 : 0) : contrast;
+        pixels.data[index] = value;
+        pixels.data[index + 1] = value;
+        pixels.data[index + 2] = value;
+      }
+      context.putImageData(pixels, 0, 0);
+      return canvas;
+    }
+
+    async function readMedicinePhoto(file) {
+      const status = $('medicinePhotoStatus');
+      const resultBox = $('medicineVerifyResult');
+      if (!file) return;
+      if (!file.type.startsWith('image/') && !/\.(jpg|jpeg|png|webp|gif|bmp|avif|tif|tiff|heic|heif)$/i.test(file.name || '')) {
+        status.textContent = 'Please select a readable image file.';
+        return;
+      }
+      status.textContent = 'Reading medicine label... keep this page open.';
+      try {
+        if (!window.Tesseract) throw new Error('OCR library is unavailable');
+        const image = await loadMedicineImage(file);
+        const texts = [];
+        for (const mode of ['normal', 'enhanced', 'threshold']) {
+          status.textContent = `Reading medicine label (${mode})...`;
+          const preparedImage = prepareMedicineImage(image, mode);
+          const result = await Tesseract.recognize(preparedImage, 'eng', { logger: message => {
+            if (message.status === 'recognizing text' && message.progress) status.textContent = `Reading medicine label (${mode})... ${Math.round(message.progress * 100)}%`;
+          }});
+          texts.push(result.data.text || '');
+          const passDetails = extractMedicineDetails(texts.join('\n'));
+          if (passDetails.medicine && passDetails.expiry && (passDetails.batch || passDetails.identifier)) break;
+        }
+        const text = texts.join('\n');
+        const details = extractMedicineDetails(text);
+        if (details.medicine) $('verifyMedicineName').value = details.medicine;
+        if (details.identifier) $('verifyMedicineIdentifier').value = details.identifier;
+        if (details.batch) $('verifyMedicineBatch').value = details.batch;
+        if (details.manufacturer) $('verifyMedicineManufacturer').value = details.manufacturer;
+        if (details.expiry) $('verifyMedicineExpiry').value = details.expiry;
+        const found = Object.keys(details).length;
+        const expiryResult = details.expiry ? expiryStatus(details.expiry) : { state: 'unknown', label: 'Expiry date was not detected. Upload a close, sharp photo of the EXP panel.' };
+        status.textContent = found ? `Photo read. ${found} detail(s) filled; review them and verify.` : 'No readable medicine details found. Use a sharper photo with the expiry panel visible.';
+        resultBox.hidden = false;
+        resultBox.style.background = expiryResult.state === 'expired' ? 'var(--red-light)' : expiryResult.state === 'valid' ? 'var(--lime-light)' : 'var(--yellow-light)';
+        resultBox.textContent = `${expiryResult.label} ${details.identifier && details.batch ? 'Review the extracted details and click Verify Medicine to check authenticity.' : 'Authenticity cannot be confirmed until the QR/serial and batch details are readable.'}`;
+        $('medicineVerifyBadge').textContent = expiryResult.state === 'expired' ? 'Expired' : expiryResult.state === 'valid' ? 'Not expired' : 'Unclear';
+      } catch (error) {
+        console.error('Medicine photo OCR failed:', error);
+        status.textContent = 'Could not read this photo. Enter the details manually or try a clearer image.';
+        resultBox.hidden = false;
+        resultBox.style.background = 'var(--yellow-light)';
+        resultBox.textContent = 'Photo reading failed, so the medicine was not marked as verified.';
+      }
+    }
+
+    async function startMedicineScan() {
+      if (!('mediaDevices' in navigator) || !('BarcodeDetector' in window)) {
+        $('medicineVerifyResult').hidden = false;
+        $('medicineVerifyResult').style.background = 'var(--yellow-light)';
+        $('medicineVerifyResult').textContent = 'Camera scan is not supported in this browser. Please paste the QR or serial code manually, or use the sample value shown in the field.';
+        return;
+      }
+
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        const video = $('medicineCamera');
+        video.srcObject = stream;
+        video.style.display = 'block';
+        video.play();
+        const detector = new BarcodeDetector({ formats: ['qr_code', 'data_matrix'] });
+
+        const scanFrame = async () => {
+          try {
+            const barcodes = await detector.detect(video);
+            if (barcodes && barcodes.length) {
+              const decoded = barcodes[0].rawValue || barcodes[0].value || '';
+              if (decoded) {
+                $('verifyMedicineIdentifier').value = decoded;
+                $('medicineVerifyResult').hidden = false;
+                $('medicineVerifyResult').style.background = 'var(--lime-light)';
+                $('medicineVerifyResult').textContent = 'QR code scanned successfully. Please verify the medicine below.';
+                stream.getTracks().forEach(track => track.stop());
+                video.style.display = 'none';
+                return;
+              }
+            }
+          } catch (error) {
+            console.error('Scanner detection failed:', error);
+          }
+          requestAnimationFrame(scanFrame);
+        };
+        scanFrame();
+      } catch (error) {
+        console.error('Camera access failed:', error);
+        $('medicineVerifyResult').hidden = false;
+        $('medicineVerifyResult').style.background = 'var(--yellow-light)';
+        $('medicineVerifyResult').textContent = 'Camera access was blocked. Please enter the medicine code manually.';
+      }
+    }
+
+    $('scanMedicineBtn').addEventListener('click', startMedicineScan);
+    $('verifyMedicineBtn').addEventListener('click', verifyMedicine);
+    $('checkAvailabilityBtn').addEventListener('click', () => loadMedicineAvailability($('verifyMedicineName').value.trim()));
+    $('medicinePhoto').addEventListener('change', event => readMedicinePhoto(event.target.files[0]));
+
+    loadTollfreeHistory();
+    populateCitySuggestions();
+    loadTimeline(); loadAsha(); loadMedicines();
+    loadMedicineAvailability();
+    if(window.lucide)lucide.createIcons();
+  </script>
+  <script src="/static/js/family.js"></script>
+</body>
+</html>

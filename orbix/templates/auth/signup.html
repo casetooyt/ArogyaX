@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sign Up — ArogyaX</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --lime: #D4F547; --orange: #F04E23; --dark: #101820;
+      --bg: #EDEDED; --card-bg: #FFFFFF; --gray-200: #E5E5E5; --gray-400: #909090;
+    }
+    body {
+      font-family: 'Inter', 'Space Grotesk', sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Animated Background */
+    .bg-animation {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 0; overflow: hidden;
+    }
+    .bg-animation .circle {
+      position: absolute; border-radius: 50%; opacity: 0.1;
+      animation: float 20s infinite ease-in-out;
+    }
+    .bg-animation .circle:nth-child(1) {
+      width: 500px; height: 500px; background: var(--lime);
+      top: -150px; right: -150px; animation-delay: 0s;
+    }
+    .bg-animation .circle:nth-child(2) {
+      width: 350px; height: 350px; background: var(--orange);
+      bottom: -100px; left: -100px; animation-delay: -7s;
+    }
+    .bg-animation .circle:nth-child(3) {
+      width: 250px; height: 250px; background: var(--dark);
+      top: 40%; left: 30%; animation-delay: -14s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33% { transform: translate(30px, -30px) scale(1.1); }
+      66% { transform: translate(-20px, 20px) scale(0.95); }
+    }
+
+    /* Container */
+    .signup-container {
+      position: relative; z-index: 10;
+      width: 100%; max-width: 480px;
+      padding: 20px;
+    }
+    .signup-card {
+      background: var(--card-bg);
+      border-radius: 24px;
+      padding: 40px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+      animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Logo */
+    .logo {
+      text-align: center; margin-bottom: 28px;
+    }
+    .logo-icon {
+      width: 110px;
+      height: 110px;
+      display: inline-flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+      animation: pulse 2s infinite;
+      border-radius: 50%;
+      background: var(--dark);
+      color: var(--lime);
+      border-radius: 30px;
+      box-shadow: 8px 8px 0 var(--lime);
+    }
+    .logo-icon svg { width: 64px; height: 64px; stroke-width: 1.8; }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(212, 245, 71, 0.18); }
+      50% { transform: scale(1.04); box-shadow: 0 0 24px 10px rgba(46, 196, 195, 0.12); }
+    }
+    .logo h1 { font-size: 22px; font-weight: 800; color: var(--dark); }
+    .logo p { font-size: 13px; color: var(--gray-400); margin-top: 4px; }
+
+    /* Form Grid */
+    .form-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+    }
+    .form-group {
+      margin-bottom: 16px; position: relative;
+    }
+    .form-group label {
+      display: block; font-size: 12px; font-weight: 600; color: var(--dark);
+      margin-bottom: 6px;
+    }
+    .input-wrapper {
+      position: relative;
+    }
+    .input-wrapper i {
+      position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+      width: 18px; height: 18px; color: var(--gray-400);
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: 12px 14px 12px 44px;
+      border: 2px solid var(--gray-200);
+      border-radius: 10px;
+      font-size: 14px; font-family: inherit;
+      transition: all 0.3s ease;
+      outline: none;
+      background: #fff;
+    }
+    .form-group input:focus, .form-group select:focus {
+      border-color: var(--lime);
+      box-shadow: 0 0 0 4px rgba(212, 245, 71, 0.2);
+    }
+    .form-group input::placeholder { color: var(--gray-400); }
+    .password-toggle {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--gray-400);
+      padding: 4px; display: flex; align-items: center; justify-content: center;
+      z-index: 2;
+    }
+    .password-toggle:hover { color: var(--dark); }
+    .password-toggle svg {
+      width: 18px; height: 18px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    /* Password Strength */
+    .password-strength {
+      display: flex; gap: 4px; margin-top: 8px;
+    }
+    .strength-bar {
+      flex: 1; height: 4px; border-radius: 2px;
+      background: var(--gray-200);
+      transition: all 0.3s ease;
+    }
+    .strength-bar.weak { background: #DC2626; }
+    .strength-bar.medium { background: #D97706; }
+    .strength-bar.strong { background: #16A34A; }
+    .strength-text {
+      font-size: 11px; margin-top: 4px; font-weight: 600;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      width: 100%; padding: 14px;
+      background: var(--dark); color: #fff;
+      border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      margin-top: 8px;
+    }
+    .submit-btn:hover {
+      background: #1a2734;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(16, 24, 32, 0.3);
+    }
+    .submit-btn.loading { opacity: 0.8; pointer-events: none; }
+    .submit-btn .spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+    .submit-btn.loading .spinner { display: block; }
+    .submit-btn.loading .btn-text { display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Error/Success Messages */
+    .msg {
+      padding: 12px 16px; border-radius: 10px;
+      font-size: 13px; margin-bottom: 16px;
+      display: none; align-items: center; gap: 8px;
+    }
+    .msg.error { background: #FFE8E8; color: #DC2626; }
+    .msg.success { background: #E8F8E8; color: #16A34A; }
+    .msg.show { display: flex; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    /* Footer */
+    .signup-footer {
+      text-align: center; margin-top: 20px;
+      font-size: 13px; color: var(--gray-400);
+    }
+    .signup-footer a {
+      color: var(--dark); font-weight: 700;
+      text-decoration: none;
+    }
+    .signup-footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="bg-animation">
+    <div class="circle"></div>
+    <div class="circle"></div>
+    <div class="circle"></div>
+  </div>
+
+  <div class="signup-container">
+    <div class="signup-card">
+      <div class="logo">
+        <div class="logo-icon" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <h1>Create Account</h1>
+        <p>Join your health journey today</p>
+      </div>
+
+      <div class="msg error" id="errorMsg"><i data-lucide="alert-circle" style="width:16px;height:16px"></i><span id="errorText"></span></div>
+      <div class="msg success" id="successMsg"><i data-lucide="check-circle" style="width:16px;height:16px"></i><span id="successText"></span></div>
+
+      <form id="signupForm" method="POST" action="/auth/signup">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <div class="input-wrapper">
+              <i data-lucide="user"></i>
+              <input type="text" name="first_name" placeholder="John" required pattern="[A-Za-z ]+" title="Only letters and spaces are allowed" oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '')" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <div class="input-wrapper">
+              <i data-lucide="user"></i>
+              <input type="text" name="last_name" placeholder="Doe" required pattern="[A-Za-z ]+" title="Only letters and spaces are allowed" oninput="this.value = this.value.replace(/[^A-Za-z ]/g, '')" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Email Address</label>
+          <div class="input-wrapper">
+            <i data-lucide="mail"></i>
+            <input type="email" name="email" placeholder="you@example.com" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Password</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock"></i>
+            <input type="password" name="password" id="password" placeholder="Min. 6 characters" required minlength="6" oninput="checkStrength(this.value)" />
+            <button type="button" class="password-toggle" data-target="password" aria-label="Show password">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+          <div class="password-strength">
+            <div class="strength-bar" id="str1"></div>
+            <div class="strength-bar" id="str2"></div>
+            <div class="strength-bar" id="str3"></div>
+            <div class="strength-bar" id="str4"></div>
+          </div>
+          <div class="strength-text" id="strengthText"></div>
+        </div>
+
+        <div class="form-group">
+          <label>Confirm Password</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock"></i>
+            <input type="password" name="confirm_password" id="confirm_password" placeholder="Re-enter password" required />
+            <button type="button" class="password-toggle" data-target="confirm_password" aria-label="Show password">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Age</label>
+            <div class="input-wrapper">
+              <i data-lucide="calendar"></i>
+              <input type="number" name="age" placeholder="25" min="1" max="120" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Gender</label>
+            <div class="input-wrapper">
+              <i data-lucide="user"></i>
+              <select name="gender">
+                <option value="">Select</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">
+          <span class="btn-text">Create Account</span>
+          <span class="spinner"></span>
+        </button>
+      </form>
+
+      <div class="signup-footer">
+        Already have an account? <a href="/auth/login">Sign In</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function checkStrength(pwd) {
+      let score = 0;
+      if (pwd.length >= 6) score++;
+      if (pwd.length >= 10) score++;
+      if (/[A-Z]/.test(pwd)) score++;
+      if (/[0-9]/.test(pwd)) score++;
+      if (/[^A-Za-z0-9]/.test(pwd)) score++;
+
+      const bars = [document.getElementById('str1'), document.getElementById('str2'), document.getElementById('str3'), document.getElementById('str4')];
+      const text = document.getElementById('strengthText');
+
+      bars.forEach((b, i) => {
+        b.className = 'strength-bar';
+        if (i < score) {
+          if (score <= 2) b.classList.add('weak');
+          else if (score <= 3) b.classList.add('medium');
+          else b.classList.add('strong');
+        }
+      });
+
+      const labels = ['', 'Weak', 'Fair', 'Good', 'Strong'];
+      text.textContent = labels[score] || '';
+      text.style.color = score <= 2 ? '#DC2626' : score <= 3 ? '#D97706' : '#16A34A';
+    }
+
+    function setPasswordVisibility(targetId, visible) {
+      const input = document.getElementById(targetId);
+      const button = document.querySelector('[data-target="' + targetId + '"]');
+      if (!input || !button) return;
+
+      input.type = visible ? 'text' : 'password';
+      button.setAttribute('aria-label', visible ? 'Hide password' : 'Show password');
+      button.innerHTML = visible
+        ? '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg>'
+        : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    }
+
+    document.querySelectorAll('.password-toggle').forEach((button) => {
+      button.addEventListener('click', function () {
+        const targetId = this.dataset.target;
+        const input = document.getElementById(targetId);
+        const shouldShow = input.type === 'password';
+        setPasswordVisibility(targetId, shouldShow);
+      });
+    });
+
+    document.getElementById('signupForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+
+      const form = e.target;
+      const firstName = form.first_name.value.trim();
+      const lastName = form.last_name.value.trim();
+      const pwd = form.password.value;
+      const confirm = form.confirm_password.value;
+      const btn = document.getElementById('submitBtn');
+      const errorMsg = document.getElementById('errorMsg');
+      const successMsg = document.getElementById('successMsg');
+
+      errorMsg.classList.remove('show');
+      successMsg.classList.remove('show');
+
+      if (!/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(firstName) || !/^[A-Za-z]+(?: [A-Za-z]+)*$/.test(lastName)) {
+        document.getElementById('errorText').textContent = 'First name and last name must contain only letters';
+        errorMsg.classList.add('show');
+        return;
+      }
+
+      if (pwd !== confirm) {
+        document.getElementById('errorText').textContent = 'Passwords do not match';
+        errorMsg.classList.add('show');
+        return;
+      }
+
+      if (pwd.length < 6) {
+        document.getElementById('errorText').textContent = 'Password must be at least 6 characters';
+        errorMsg.classList.add('show');
+        return;
+      }
+
+      btn.classList.add('loading');
+
+      const formData = new FormData(form);
+      fetch('/auth/signup', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        btn.classList.remove('loading');
+        if (data.success) {
+          document.getElementById('successText').textContent = 'Account created! Redirecting...';
+          successMsg.classList.add('show');
+          setTimeout(() => window.location.href = '/auth/login', 1500);
+        } else {
+          document.getElementById('errorText').textContent = data.message || 'Registration failed';
+          errorMsg.classList.add('show');
+        }
+      })
+      .catch(() => {
+        btn.classList.remove('loading');
+        document.getElementById('errorText').textContent = 'Network error';
+        errorMsg.classList.add('show');
+      });
+    });
+
+    lucide.createIcons();
+  </script>
+
+<script>
+(function() {
+  // Check auth status on all pages
+  fetch('/api/me', {credentials: 'include'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.user) {
+        // Logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        const dropdownName = document.getElementById('dropdownName');
+        const dropdownEmail = document.getElementById('dropdownEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (authButtons) authButtons.style.display = 'none';
+        if (userMenu) {
+          userMenu.style.display = 'block';
+          const name = (data.user.first_name || 'User').split(' ')[0];
+          if (userName) userName.textContent = name;
+          if (dropdownName) dropdownName.textContent = data.user.first_name + ' ' + (data.user.last_name || '');
+          if (dropdownEmail) dropdownEmail.textContent = data.user.email;
+          if (userAvatar) userAvatar.textContent = (data.user.first_name || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        // Not logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        if (authButtons) authButtons.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  
+  // User dropdown toggle
+  const menuBtn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+  }
+})();
+</script>
+
+</body>
+</html>

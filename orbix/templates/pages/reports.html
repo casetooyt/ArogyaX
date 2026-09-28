@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX — Health Report Scanner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    .scanner-area {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .drop-zone {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius);
+      padding: 60px 20px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      background: var(--gray-50);
+    }
+    .drop-zone:hover, .drop-zone.drag-over {
+      border-color: var(--lime);
+      background: var(--lime-light);
+    }
+    .drop-zone svg {
+      width: 48px;
+      height: 48px;
+      color: var(--gray-400);
+      margin: 0 auto 16px;
+    }
+    .drop-zone-text {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 8px;
+    }
+    .drop-zone-sub {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+    .scan-result {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      display: none;
+    }
+    .scan-result.visible {
+      display: block;
+    }
+    .parameter-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+    }
+    .parameter-table th {
+      background: var(--gray-100);
+      padding: 12px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--gray-500);
+    }
+    .parameter-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 14px;
+    }
+    .parameter-table tr:hover td {
+      background: var(--gray-50);
+    }
+    .status-normal {
+      color: #16A34A;
+      font-weight: 700;
+    }
+    .status-high {
+      color: var(--orange);
+      font-weight: 700;
+    }
+    .status-low {
+      color: #2563EB;
+      font-weight: 700;
+    }
+    .parameter-bar {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .bar-track {
+      flex: 1;
+      height: 6px;
+      background: var(--gray-200);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+    }
+    .bar-fill.normal { background: #16A34A; }
+    .bar-fill.high { background: var(--orange); }
+    .bar-fill.low { background: #2563EB; }
+    .ocr-preview {
+      background: var(--gray-100);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-family: monospace;
+      font-size: 12px;
+      color: var(--gray-600);
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 16px;
+    }
+    .summary-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .summary-card {
+      background: var(--gray-50);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      text-align: center;
+    }
+    .summary-value {
+      font-size: 28px;
+      font-weight: 800;
+    }
+    .summary-label {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-top: 4px;
+    }
+    .ai-insight {
+      background: var(--lime-light);
+      border: 1px solid var(--lime);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-top: 16px;
+    }
+    .ai-insight h4 {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .ai-insight p {
+      font-size: 13px;
+      color: var(--gray-600);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text"><h1>ArogyaX</h1><span>Reports</span></div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn"><i data-lucide="heart" style="width:16px;height:16px"></i></button>
+      <button class="icon-btn"><i data-lucide="sparkles" style="width:16px;height:16px"></i></button>
+      <button class="date-pill">
+        <i data-lucide="bell" style="width:14px;height:14px"></i>
+        <span>Sat, 26 Aug</span>
+        <span class="badge-count">5</span>
+      </button>
+      <div class="hamburger"><i data-lucide="menu" style="width:18px;height:18px"></i></div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-item" id="nav-home">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/page/chat" class="sidebar-item" id="nav-ai-chat">
+      <i data-lucide="message-circle"></i>
+      <span>AI Chat</span>
+    </a>
+    <a href="/page/analytics" class="sidebar-item" id="nav-analytics">
+      <i data-lucide="bar-chart-2"></i>
+      <span>Analytics</span>
+    </a>
+    <a href="/page/knowledge" class="sidebar-item" id="nav-knowledge">
+      <i data-lucide="book-open"></i>
+      <span>Knowledge</span>
+    </a>
+    <a href="/page/reports" class="sidebar-item active" id="nav-reports">
+      <i data-lucide="file-text"></i>
+      <span>Reports</span>
+    </a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <a href="/page/settings" class="sidebar-item" id="nav-settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="section-header" style="margin-bottom:20px">
+      <div class="section-icon">
+        <i data-lucide="scan" style="width:20px;height:20px"></i>
+      </div>
+      <div>
+        <h2 class="section-title">AI Health Report Scanner</h2>
+        <p class="section-subtitle">Upload your lab reports to extract and understand health parameters instantly</p>
+      </div>
+      <div class="section-badge">
+        <span class="dot"></span>
+        AI-Powered OCR
+      </div>
+    </div>
+
+    <!-- Upload Area -->
+    <div class="scanner-area">
+      <div class="drop-zone" id="dropZone">
+        <i data-lucide="upload-cloud" style="width:48px;height:48px;color:var(--gray-400);margin:0 auto 16px"></i>
+        <div class="drop-zone-text">Drop your health report here</div>
+        <div class="drop-zone-sub">Supports PDF, JPG, PNG • Max 10MB</div>
+        <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" style="display:none" />
+      </div>
+      <div style="display:flex;gap:12px;margin-top:16px;align-items:center">
+        <button class="btn-outline" id="browseBtn" style="flex:1;justify-content:center">
+          <i data-lucide="folder-open" style="width:16px;height:16px"></i>
+          Browse Files
+        </button>
+        <button class="btn-outline" id="pasteBtn" style="flex:1;justify-content:center">
+          <i data-lucide="clipboard" style="width:16px;height:16px"></i>
+          Paste Text
+        </button>
+        <button class="btn-outline" id="sampleBtn" style="flex:1;justify-content:center">
+          <i data-lucide="file-text" style="width:16px;height:16px"></i>
+          Try Sample Report
+        </button>
+      </div>
+    </div>
+
+    <!-- Analysis Result -->
+    <div class="scan-result" id="scanResult">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <div>
+          <h3 style="font-size:18px;font-weight:800">Analysis Results</h3>
+          <p style="font-size:13px;color:var(--gray-500)">Extracted from your uploaded report</p>
+        </div>
+        <button class="btn-outline" id="downloadBtn">
+          <i data-lucide="download" style="width:14px;height:14px"></i>
+          Export Report
+        </button>
+      </div>
+
+      <!-- Summary Cards -->
+      <div class="summary-cards" id="summaryCards">
+        <!-- Will be populated by JS -->
+      </div>
+
+      <!-- Parameter Table -->
+      <table class="parameter-table" id="parameterTable">
+        <thead>
+          <tr>
+            <th>Parameter</th>
+            <th>Your Value</th>
+            <th>Normal Range</th>
+            <th>Status</th>
+            <th>Explanation</th>
+          </tr>
+        </thead>
+        <tbody id="parameterBody">
+          <!-- Will be populated by JS -->
+        </tbody>
+      </table>
+
+      <!-- AI Insight -->
+      <div class="ai-insight">
+        <h4>
+          <i data-lucide="bot" style="width:16px;height:16px"></i>
+          AI Health Insight
+        </h4>
+        <p id="aiInsight">
+          Based on your report analysis, most parameters are within normal range. Your hemoglobin levels are good, indicating healthy red blood cell count. Continue maintaining a balanced diet and regular checkups.
+        </p>
+      </div>
+
+      <!-- Raw OCR Preview -->
+      <details style="margin-top:16px">
+        <summary style="font-size:13px;font-weight:600;color:var(--gray-500);cursor:pointer">
+          View Extracted Text (OCR)
+        </summary>
+        <div class="ocr-preview" id="ocrPreview">
+          <!-- Will be populated by JS -->
+        </div>
+      </details>
+    </div>
+
+    <!-- History Section -->
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:800">Recent Scans</h3>
+        <button class="btn-outline" id="viewAllScans" style="padding:6px 12px;font-size:12px">View All</button>
+      </div>
+      <div id="scanHistory"></div>
+    </div>
+  </main>
+
+  <script>
+    // Report analysis is handled by the live page logic in static/js/main.js.
+  </script>
+<script src="/static/js/main.js"></script>
+<script src="/static/js/family.js"></script>
+  <script>lucide.createIcons();</script>
+
+<script>
+(function() {
+  // Check auth status on all pages
+  fetch('/api/me', {credentials: 'include'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.user) {
+        // Logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        const dropdownName = document.getElementById('dropdownName');
+        const dropdownEmail = document.getElementById('dropdownEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (authButtons) authButtons.style.display = 'none';
+        if (userMenu) {
+          userMenu.style.display = 'block';
+          const name = (data.user.first_name || 'User').split(' ')[0];
+          if (userName) userName.textContent = name;
+          if (dropdownName) dropdownName.textContent = data.user.first_name + ' ' + (data.user.last_name || '');
+          if (dropdownEmail) dropdownEmail.textContent = data.user.email;
+          if (userAvatar) userAvatar.textContent = (data.user.first_name || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        // Not logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        if (authButtons) authButtons.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  
+  // User dropdown toggle
+  const menuBtn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+  }
+})();
+</script>
+
+</body>
+</html>

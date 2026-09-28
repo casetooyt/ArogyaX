@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX — Trusted Health Knowledge</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    .knowledge-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 20px;
+    }
+    .qa-header {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .search-box {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    .search-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-pill);
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition);
+    }
+    .search-input:focus { border-color: var(--lime); }
+    .source-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      background: var(--gray-50);
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--gray-200);
+      margin-bottom: 8px;
+    }
+    .source-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      background: var(--card-bg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .source-info { flex: 1; min-width: 0; }
+    .source-name { font-size: 13px; font-weight: 700; }
+    .source-url { font-size: 11px; color: var(--gray-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .related-question {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid transparent;
+      margin-bottom: 8px;
+    }
+    .related-question:hover { background: var(--gray-100); border-color: var(--gray-200); }
+    .answer-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      font-size: 14px;
+    }
+    .answer-table th,
+    .answer-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .answer-table th {
+      background: var(--gray-100);
+      font-weight: 700;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: .5px;
+      color: var(--gray-500);
+    }
+    .answer-table tr:hover td { background: var(--gray-50); }
+    .feedback-btns {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .feedback-btn {
+      padding: 8px 16px;
+      border-radius: var(--radius-pill);
+      font-size: 13px;
+      font-weight: 600;
+      border: 1px solid var(--gray-200);
+      background: var(--card-bg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: var(--transition);
+    }
+    .feedback-btn:hover { background: var(--gray-100); }
+    .feedback-btn.active { background: var(--lime); border-color: var(--lime); }
+    #answerText { white-space: pre-line; line-height: 1.7; }
+    .trust-badges {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      padding: 16px;
+      background: var(--lime-light);
+      border-radius: var(--radius);
+      border: 1px solid var(--lime);
+    }
+    .trust-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+    }
+    .trust-badge img {
+      width: 32px;
+      height: 32px;
+      object-fit: contain;
+    }
+    @media (max-width: 1200px) {
+      .knowledge-layout { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text"><h1>ArogyaX</h1><span>Knowledge</span></div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn"><i data-lucide="heart" style="width:16px;height:16px"></i></button>
+      <button class="icon-btn"><i data-lucide="sparkles" style="width:16px;height:16px"></i></button>
+      <button class="date-pill">
+        <i data-lucide="bell" style="width:14px;height:14px"></i>
+        <span>Sat, 26 Aug</span>
+        <span class="badge-count">5</span>
+      </button>
+      <div class="hamburger"><i data-lucide="menu" style="width:18px;height:18px"></i></div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-item" id="nav-home">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/page/chat" class="sidebar-item" id="nav-ai-chat">
+      <i data-lucide="message-circle"></i>
+      <span>AI Chat</span>
+    </a>
+    <a href="/page/analytics" class="sidebar-item" id="nav-analytics">
+      <i data-lucide="bar-chart-2"></i>
+      <span>Analytics</span>
+    </a>
+    <a href="/page/knowledge" class="sidebar-item active" id="nav-knowledge">
+      <i data-lucide="book-open"></i>
+      <span>Knowledge</span>
+    </a>
+    <a href="/page/reports" class="sidebar-item" id="nav-reports">
+      <i data-lucide="file-text"></i>
+      <span>Reports</span>
+    </a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <a href="/page/settings" class="sidebar-item" id="nav-settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="qa-header">
+      <div class="section-header">
+        <div class="section-icon">
+          <i data-lucide="book-open" style="width:20px;height:20px"></i>
+        </div>
+        <div>
+          <h2 class="section-title">Trusted Health Knowledge</h2>
+          <p class="section-subtitle">Evidence-based answers from WHO, Government & trusted health sources</p>
+        </div>
+        <div class="section-badge">
+          <span class="dot"></span>
+          Powered by RAG
+        </div>
+      </div>
+      <div class="search-box">
+        <input type="text" class="search-input" id="knowledgeQuery" placeholder="Ask a health question... (e.g., What is normal blood sugar?)" />
+        <button class="btn-lime" id="knowledgeSearchBtn">
+          <i data-lucide="search" style="width:16px;height:16px"></i>
+          Search
+        </button>
+      </div>
+    </div>
+
+    <div class="knowledge-layout">
+      <div class="knowledge-main">
+        <div id="knowledgeResults">
+          <!-- Initial prompt - common questions -->
+          <div class="chart-card" style="margin-bottom:16px">
+            <h3>Popular Questions</h3>
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+              <button class="related-question" data-query="What is the normal range of blood sugar for a healthy adult?">
+                What is the normal range of blood sugar for a healthy adult?
+                <i data-lucide="arrow-right" style="width:16px;height:16px;color:var(--gray-400)"></i>
+              </button>
+              <button class="related-question" data-query="What are the normal sleep hours for adults?">
+                What are the normal sleep hours for adults?
+                <i data-lucide="arrow-right" style="width:16px;height:16px;color:var(--gray-400)"></i>
+              </button>
+              <button class="related-question" data-query="What is a normal heart rate?">
+                What is a normal heart rate?
+                <i data-lucide="arrow-right" style="width:16px;height:16px;color:var(--gray-400)"></i>
+              </button>
+              <button class="related-question" data-query="What is normal hemoglobin level?">
+                What is normal hemoglobin level?
+                <i data-lucide="arrow-right" style="width:16px;height:16px;color:var(--gray-400)"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Example answer card (hidden initially) -->
+          <div id="answerCard" style="display:none">
+            <div class="chat-msg bot" style="margin-bottom:20px">
+              <div class="chat-avatar bot" style="width:40px;height:40px">
+                <i data-lucide="bot" style="width:20px;height:20px"></i>
+              </div>
+              <div class="chat-bubble" style="max-width:100%">
+                <div id="answerText"></div>
+                <div id="answerTable"></div>
+                <div style="margin-top:12px;padding:12px;background:var(--lime-light);border-radius:var(--radius-sm);border:1px solid var(--lime)">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                    <i data-lucide="info" style="width:16px;height:16px;color:var(--dark)"></i>
+                    <span style="font-size:13px;font-weight:700">Important</span>
+                  </div>
+                  <p style="font-size:12px;color:var(--gray-600);line-height:1.6">
+                    These are general reference ranges and may vary slightly based on the lab and individual factors like age, pregnancy, or existing health conditions. Always consult a healthcare professional for personalized advice.
+                  </p>
+                </div>
+                <div class="feedback-btns">
+                  <button class="feedback-btn" id="feedbackThumbsUp">
+                    <i data-lucide="thumbs-up" style="width:14px;height:14px"></i>
+                    Helpful
+                  </button>
+                  <button class="feedback-btn" id="feedbackThumbsDown">
+                    <i data-lucide="thumbs-down" style="width:14px;height:14px"></i>
+                    Not helpful
+                  </button>
+                </div>
+                <div style="font-size:11px;color:var(--gray-400);margin-top:8px" id="answerTimestamp">10:24 AM</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="knowledge-sidebar">
+        <div class="card" style="margin-bottom:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+            <h4 style="font-size:14px;font-weight:800">Sources Used (RAG)</h4>
+            <a href="#" style="font-size:12px;color:var(--gray-500)">View All</a>
+          </div>
+          <div id="sourcesList">
+            <div class="source-card">
+              <div class="source-logo">🌐</div>
+              <div class="source-info">
+                <div class="source-name">WHO – Diabetes Factsheet</div>
+                <div class="source-url">who.int/health-topics/diabetes</div>
+              </div>
+              <span class="source-badge high">High Relevance</span>
+            </div>
+            <div class="source-card">
+              <div class="source-logo">🇮🇳</div>
+              <div class="source-info">
+                <div class="source-name">ICMR – Blood Glucose Guidelines</div>
+                <div class="source-url">icmr.gov.in</div>
+              </div>
+              <span class="source-badge high">High Relevance</span>
+            </div>
+            <div class="source-card">
+              <div class="source-logo">🏥</div>
+              <div class="source-info">
+                <div class="source-name">Blood Sugar Levels</div>
+                <div class="source-url">nhs.uk</div>
+              </div>
+              <span class="source-badge medium">Medium Relevance</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <i data-lucide="message-square" style="width:16px;height:16px"></i>
+            <h4 style="font-size:14px;font-weight:800">Related Questions</h4>
+          </div>
+          <div id="relatedQuestions">
+            <div class="related-question" data-query="What are the symptoms of high blood sugar?">
+              What are the symptoms of high blood sugar?
+              <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+            </div>
+            <div class="related-question" data-query="What foods help maintain normal blood sugar levels?">
+              What foods help maintain normal blood sugar levels?
+              <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+            </div>
+            <div class="related-question" data-query="How often should I check my blood sugar?">
+              How often should I check my blood sugar?
+              <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+            </div>
+            <div class="related-question" data-query="Can stress affect my blood sugar levels?">
+              Can stress affect my blood sugar levels?
+              <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+            </div>
+          </div>
+        </div>
+
+        <div class="trust-badges" style="margin-top:16px">
+          <div>
+            <div style="font-size:13px;font-weight:700;margin-bottom:8px">Trusted Information, Always</div>
+            <div style="font-size:11px;color:var(--gray-500)">We use verified sources like WHO, Government health portals and recognized medical organizations.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>'"]/g, (character) => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+      }[character]));
+    }
+
+    function formatAnswerText(text) {
+      if (!text) return 'No answer available yet.';
+      return String(text)
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/__(.*?)__/g, '$1')
+        .replace(/(?<!\*)\*(?!\*)/g, '')
+        .replace(/^#+\s*/gm, '')
+        .replace(/^-\s+/gm, '• ')
+        .replace(/`/g, '')
+        .trim();
+    }
+
+    function renderAnswer(data, query) {
+      const answerCard = document.getElementById('answerCard');
+      const answerText = document.getElementById('answerText');
+      const answerTable = document.getElementById('answerTable');
+      const sourcesList = document.getElementById('sourcesList');
+      const relatedQuestions = document.getElementById('relatedQuestions');
+      const answerTimestamp = document.getElementById('answerTimestamp');
+
+      answerTimestamp.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      answerText.textContent = formatAnswerText(data.answer || 'No answer available for this query.');
+
+      if (Array.isArray(data.table) && data.table.length) {
+        let tableHTML = '<table class="answer-table"><thead><tr>';
+        data.table[0].forEach((heading) => {
+          tableHTML += `<th>${escapeHtml(heading)}</th>`;
+        });
+        tableHTML += '</tr></thead><tbody>';
+
+        for (let i = 1; i < data.table.length; i++) {
+          tableHTML += '<tr>';
+          data.table[i].forEach((cell) => {
+            tableHTML += `<td>${escapeHtml(cell)}</td>`;
+          });
+          tableHTML += '</tr>';
+        }
+        tableHTML += '</tbody></table>';
+        answerTable.innerHTML = tableHTML;
+      } else {
+        answerTable.innerHTML = '';
+      }
+
+      const sources = Array.isArray(data.sources) ? data.sources : [];
+      sourcesList.innerHTML = sources.length
+        ? sources.map((src) => `
+          <div class="source-card">
+            <div class="source-logo">${src.name && src.name.includes('WHO') ? '🌐' : src.name && src.name.includes('ICMR') ? '🇮🇳' : '🏥'}</div>
+            <div class="source-info">
+              <div class="source-name">${escapeHtml(src.name || 'Trusted source')}</div>
+              <div class="source-url">${escapeHtml(src.url || '')}</div>
+            </div>
+            <span class="source-badge ${src.relevance === 'High' ? 'high' : 'medium'}">${escapeHtml(src.relevance || 'High')} Relevance</span>
+          </div>
+        `).join('')
+        : '<p style="font-size:13px;color:var(--gray-500)">No specific sources found for this query.</p>';
+
+      const related = Array.isArray(data.related) ? data.related : [];
+      relatedQuestions.innerHTML = related.length
+        ? related.map((item) => `
+          <div class="related-question" data-query="${escapeHtml(item)}">
+            ${escapeHtml(item)}
+            <i data-lucide="arrow-right" style="width:14px;height:14px"></i>
+          </div>
+        `).join('')
+        : `
+          <div class="related-question" data-query="What is the normal range of blood sugar?">What is the normal range of blood sugar?<i data-lucide="arrow-right" style="width:14px;height:14px"></i></div>
+          <div class="related-question" data-query="What are normal sleep hours?">What are normal sleep hours?<i data-lucide="arrow-right" style="width:14px;height:14px"></i></div>
+          <div class="related-question" data-query="What is a normal heart rate?">What is a normal heart rate?<i data-lucide="arrow-right" style="width:14px;height:14px"></i></div>
+        `;
+
+      answerCard.style.display = 'block';
+      answerCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      bindRelatedQuestions();
+    }
+
+    function handleNoResult(query) {
+      const answerCard = document.getElementById('answerCard');
+      const answerText = document.getElementById('answerText');
+      const answerTable = document.getElementById('answerTable');
+      const sourcesList = document.getElementById('sourcesList');
+      const relatedQuestions = document.getElementById('relatedQuestions');
+      const answerTimestamp = document.getElementById('answerTimestamp');
+
+      answerTimestamp.textContent = new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      answerText.textContent = `No answer was returned for "${query}". Please try again or rephrase the question.`;
+      answerTable.innerHTML = '';
+      sourcesList.innerHTML = '<p style="font-size:13px;color:var(--gray-500)">No specific sources found for this query.</p>';
+      relatedQuestions.innerHTML = `
+        <div class="related-question" data-query="What is the normal range of blood sugar?">What is the normal range of blood sugar?<i data-lucide="arrow-right" style="width:14px;height:14px"></i></div>
+        <div class="related-question" data-query="What are normal sleep hours?">What are normal sleep hours?<i data-lucide="arrow-right" style="width:14px;height:14px"></i></div>
+        <div class="related-question" data-query="What is a normal heart rate?">What is a normal heart rate?<i data-lucide="arrow-right" style="width:14px;height:14px"></i></div>
+      `;
+      answerCard.style.display = 'block';
+      answerCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      bindRelatedQuestions();
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function handleSearchError() {
+      const answerCard = document.getElementById('answerCard');
+      const answerText = document.getElementById('answerText');
+      const answerTable = document.getElementById('answerTable');
+      const sourcesList = document.getElementById('sourcesList');
+      if (answerText) answerText.textContent = 'The answer service is temporarily unavailable. Please check your connection and try again.';
+      if (answerTable) answerTable.innerHTML = '';
+      if (sourcesList) sourcesList.innerHTML = '<p style="font-size:13px;color:var(--gray-500)">Sources will appear when the answer loads.</p>';
+      if (answerCard) answerCard.style.display = 'block';
+    }
+
+    function bindRelatedQuestions() {
+      document.querySelectorAll('.related-question').forEach((btn) => {
+        btn.onclick = () => {
+          const query = btn.dataset.query;
+          document.getElementById('knowledgeQuery').value = query;
+          searchKnowledge(query);
+        };
+      });
+    }
+
+    function searchKnowledge(query) {
+      const cleanQuery = query.trim();
+      if (!cleanQuery) return;
+
+      const searchButton = document.getElementById('knowledgeSearchBtn');
+      const answerCard = document.getElementById('answerCard');
+      const answerText = document.getElementById('answerText');
+      if (searchButton) {
+        searchButton.disabled = true;
+        searchButton.setAttribute('aria-busy', 'true');
+      }
+      if (answerCard) answerCard.style.display = 'block';
+      if (answerText) answerText.textContent = 'Searching trusted health sources...';
+
+      fetch('/api/knowledge', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ query: cleanQuery, language: localStorage.getItem('orbix-language') || 'en' })
+      })
+      .then((response) => {
+        if (!response.ok) throw new Error('Knowledge request failed');
+        return response.json();
+      })
+      .then((data) => {
+        if (data && data.answer) {
+          renderAnswer(data, cleanQuery);
+        } else {
+          handleNoResult(cleanQuery);
+        }
+      })
+      .catch((error) => {
+        console.error('Knowledge search failed:', error);
+        handleSearchError();
+      })
+      .finally(() => {
+        if (searchButton) {
+          searchButton.disabled = false;
+          searchButton.removeAttribute('aria-busy');
+        }
+      });
+    }
+
+    document.getElementById('knowledgeSearchBtn').addEventListener('click', () => {
+      const query = document.getElementById('knowledgeQuery').value.trim();
+      if (query) searchKnowledge(query);
+    });
+
+    window.addEventListener('orbixLanguageChange', () => {
+      const query = document.getElementById('knowledgeQuery').value.trim();
+      if (query) searchKnowledge(query);
+    });
+
+    document.getElementById('knowledgeQuery').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const query = e.target.value.trim();
+        if (query) searchKnowledge(query);
+      }
+    });
+
+    document.getElementById('feedbackThumbsUp').addEventListener('click', function() {
+      this.classList.add('active');
+      document.getElementById('feedbackThumbsDown').classList.remove('active');
+    });
+
+    document.getElementById('feedbackThumbsDown').addEventListener('click', function() {
+      this.classList.add('active');
+      document.getElementById('feedbackThumbsUp').classList.remove('active');
+    });
+
+    bindRelatedQuestions();
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  </script>
+<script src="/static/js/main.js"></script>
+  <script>lucide.createIcons();</script>
+
+<script>
+(function() {
+  // Check auth status on all pages
+  fetch('/api/me', {credentials: 'include'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.user) {
+        // Logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        const dropdownName = document.getElementById('dropdownName');
+        const dropdownEmail = document.getElementById('dropdownEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (authButtons) authButtons.style.display = 'none';
+        if (userMenu) {
+          userMenu.style.display = 'block';
+          const name = (data.user.first_name || 'User').split(' ')[0];
+          if (userName) userName.textContent = name;
+          if (dropdownName) dropdownName.textContent = data.user.first_name + ' ' + (data.user.last_name || '');
+          if (dropdownEmail) dropdownEmail.textContent = data.user.email;
+          if (userAvatar) userAvatar.textContent = (data.user.first_name || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        // Not logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        if (authButtons) authButtons.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  
+  // User dropdown toggle
+  const menuBtn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+  }
+})();
+</script>
+
+</body>
+</html>

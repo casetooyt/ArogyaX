@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX — Multi-Language Support</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    .lang-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+    .lang-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: var(--transition);
+      border: 2px solid transparent;
+      box-shadow: var(--shadow);
+    }
+    .lang-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    .lang-card.active { border-color: var(--lime); background: var(--lime-light); }
+    .lang-flag { font-size: 32px; margin-bottom: 8px; }
+    .lang-name { font-size: 13px; font-weight: 700; }
+    .lang-native { font-size: 11px; color: var(--gray-500); margin-top: 2px; }
+    .lang-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--lime);
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .lang-card { position: relative; }
+    .translation-code {
+      background: var(--gray-100);
+      border-radius: var(--radius-sm);
+      padding: 16px;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.8;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .code-key { color: #16A34A; font-weight: 700; }
+    .code-string { color: #2563EB; }
+    .code-number { color: var(--orange); }
+    .code-brace { color: var(--gray-400); }
+    .process-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .step-number {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--lime);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .step-content h4 {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .step-content p {
+      font-size: 13px;
+      color: var(--gray-500);
+      line-height: 1.5;
+    }
+    .preview-chat {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .preview-msg {
+      padding: 12px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .preview-msg.bot { background: var(--gray-100); }
+    .preview-msg.user { background: var(--dark); color: #fff; margin-left: auto; max-width: 80%; }
+    .coming-soon-scroll {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding: 8px 0;
+    }
+    .coming-soon-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 16px;
+      background: var(--card-bg);
+      border-radius: var(--radius-pill);
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 600;
+      box-shadow: var(--shadow);
+    }
+    @media (max-width: 1200px) {
+      .lang-layout { grid-template-columns: 1fr !important; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text"><h1>ArogyaX</h1><span>Languages</span></div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn"><i data-lucide="heart" style="width:16px;height:16px"></i></button>
+      <button class="icon-btn"><i data-lucide="sparkles" style="width:16px;height:16px"></i></button>
+      <button class="date-pill">
+        <i data-lucide="bell" style="width:14px;height:14px"></i>
+        <span>Sat, 26 Aug</span>
+        <span class="badge-count">5</span>
+      </button>
+      <div class="hamburger"><i data-lucide="menu" style="width:18px;height:18px"></i></div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-item" id="nav-home">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/page/chat" class="sidebar-item" id="nav-ai-chat">
+      <i data-lucide="message-circle"></i>
+      <span>AI Chat</span>
+    </a>
+    <a href="/page/analytics" class="sidebar-item" id="nav-analytics">
+      <i data-lucide="bar-chart-2"></i>
+      <span>Analytics</span>
+    </a>
+    <a href="/page/knowledge" class="sidebar-item" id="nav-knowledge">
+      <i data-lucide="book-open"></i>
+      <span>Knowledge</span>
+    </a>
+    <a href="/page/reports" class="sidebar-item" id="nav-reports">
+      <i data-lucide="file-text"></i>
+      <span>Reports</span>
+    </a>
+    <a href="/page/languages" class="sidebar-item active" id="nav-languages">
+      <i data-lucide="languages"></i>
+      <span>Languages</span>
+    </a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <a href="/page/settings" class="sidebar-item" id="nav-settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="section-header" style="margin-bottom:24px">
+      <div class="section-icon">
+        <i data-lucide="languages" style="width:20px;height:20px"></i>
+      </div>
+      <div>
+        <h2 class="section-title">Multi-Language Support</h2>
+        <p class="section-subtitle">Get your health information, chat and reports in your preferred language</p>
+      </div>
+      <div class="section-badge">
+        <span class="dot"></span>
+        Active
+      </div>
+    </div>
+
+    <div class="lang-layout" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <!-- Left Column -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <!-- Language Selection -->
+        <div class="card">
+          <h3 style="font-size:16px;font-weight:800;margin-bottom:16px">Select Language</h3>
+          <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">Choose your preferred language for the platform</p>
+          <div class="lang-grid" id="langGrid"><div class="notice">Loading all supported languages...</div></div>
+          <div style="margin-top:16px">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--gray-500);margin-bottom:8px">
+              <span>Supported Languages</span>
+              <span>Loading...</span>
+            </div>
+            <div style="height:6px;background:var(--gray-200);border-radius:3px;overflow:hidden">
+              <div style="height:100%;width:33%;background:var(--lime);border-radius:3px"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Translation Structure -->
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+            <h3 style="font-size:16px;font-weight:800">Translation Object Structure</h3>
+            <button class="btn-outline" style="padding:6px 12px;font-size:12px" id="copyCode">
+              <i data-lucide="copy" style="width:12px;height:12px"></i>
+              Copy
+            </button>
+          </div>
+          <div class="translation-code" id="translationCode">{
+  <span class="code-key">"home"</span>: {
+    <span class="code-key">"title"</span>: {
+      <span class="code-string">"en"</span>: <span class="code-string">"Welcome to Your Health Dashboard"</span>,
+      <span class="code-string">"hi"</span>: <span class="code-string">"आपके स्वास्थ्य डैशबोर्ड में स्वागत है"</span>,
+      <span class="code-string">"or"</span>: <span class="code-string">"ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ ଡ୍ୟାଶବୋର୍ଡରେ ସ୍ୱାଗତ"</span>,
+      <span class="code-string">"es"</span>: <span class="code-string">"Bienvenido a su panel de salud"</span>,
+      <span class="code-string">"fr"</span>: <span class="code-string">"Bienvenue sur votre tableau de bord santé"</span>
+    },
+    <span class="code-key">"subtitle"</span>: {
+      <span class="code-string">"en"</span>: <span class="code-string">"Track your health, stay informed"</span>,
+      <span class="code-string">"hi"</span>: <span class="code-string">"अपने स्वास्थ्य पर नजर रखें, जानकारी पाएं"</span>,
+      <span class="code-string">"or"</span>: <span class="code-string">"ଆପଣଙ୍କ ସ୍ୱାସ୍ଥ୍ୟ ଲକ୍ଷ ରଖନ୍ତୁ, ଜ୍ଞାନ ପାଇଁ"</span>
+    }
+  },
+  <span class="code-key">"nav"</span>: {
+    <span class="code-string">"home"</span>: { <span class="code-string">"en"</span>: <span class="code-string">"Home"</span>, <span class="code-string">"hi"</span>: <span class="code-string">"होम"</span> },
+    <span class="code-string">"chat"</span>: { <span class="code-string">"en"</span>: <span class="code-string">"AI Chat"</span>, <span class="code-string">"hi"</span>: <span class="code-string">"AI चैट"</span> }
+  }
+}</div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div style="display:flex;flex-direction:column;gap:20px">
+        <!-- How It Works -->
+        <div class="card">
+          <h3 style="font-size:16px;font-weight:800;margin-bottom:16px">How It Works</h3>
+          <div class="process-step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h4>Detect Language</h4>
+              <p>Automatically detects user's preferred language or uses selected language.</p>
+            </div>
+          </div>
+          <div class="process-step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h4>Fetch Translation</h4>
+              <p>Retrieves text from translation object based on language key.</p>
+            </div>
+          </div>
+          <div class="process-step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h4>Render UI</h4>
+              <p>Displays content in the selected language across the platform.</p>
+            </div>
+          </div>
+          <div class="process-step">
+            <div class="step-number">4</div>
+            <div class="step-content">
+              <h4>Fallback</h4>
+              <p>If translation not available, falls back to English.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="card">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:16px">
+            <i data-lucide="eye" style="width:16px;height:16px"></i>
+            <h3 style="font-size:16px;font-weight:800">Live Preview</h3>
+          </div>
+          <p style="font-size:13px;color:var(--gray-500);margin-bottom:16px">See how the same content looks in different languages</p>
+
+          <div class="preview-chat" id="previewChat">
+            <div class="preview-msg bot">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center">
+                  <i data-lucide="bot" style="width:12px;height:12px"></i>
+                </div>
+                <span style="font-size:11px;color:var(--gray-500)">AI Health Companion</span>
+              </div>
+              <div id="previewText1">Hello! I'm your AI health companion. How can I help you today?</div>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:8px">10:24 AM ✓✓</div>
+            </div>
+            <div class="preview-msg user">
+              <div id="previewText2">I have been feeling tired lately. What should I do?</div>
+              <div style="font-size:11px;color:rgba(255,255,255,0.5);margin-top:8px;text-align:right">10:25 AM</div>
+            </div>
+            <div class="preview-msg bot">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                <div style="width:24px;height:24px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center">
+                  <i data-lucide="bot" style="width:12px;height:12px"></i>
+                </div>
+                <span style="font-size:11px;color:var(--gray-500)">AI Health Companion</span>
+              </div>
+              <div id="previewText3">Persistent fatigue can have many causes. Let me ask a few questions to help you better...</div>
+              <div style="font-size:11px;color:var(--gray-400);margin-top:8px">10:25 AM ✓✓</div>
+            </div>
+          </div>
+
+          <div style="display:flex;gap:8px;margin-top:16px">
+            <button class="btn-outline" data-preview="en" style="flex:1;justify-content:center">🇬🇧 EN</button>
+            <button class="btn-outline" data-preview="hi" style="flex:1;justify-content:center">🇮🇳 HI</button>
+            <button class="btn-outline" data-preview="or" style="flex:1;justify-content:center">🇮🇳 OD</button>
+            <button class="btn-outline" data-preview="es" style="flex:1;justify-content:center">🇪🇸 ES</button>
+          </div>
+        </div>
+
+        <!-- Language coverage -->
+        <div style="background:var(--card-bg);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)">
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+            <div style="width:40px;height:40px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center">
+              <i data-lucide="globe" style="width:20px;height:20px"></i>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:700">22 Indian Languages Available</div>
+              <div style="font-size:12px;color:var(--gray-500)">Choose any scheduled Indian language for AI chat, knowledge answers and voice input.</div>
+            </div>
+          </div>
+          <div class="coming-soon-scroll">
+            <div class="coming-soon-item">🇮🇳 Assamese · Bengali · Bodo · Dogri</div>
+            <div class="coming-soon-item">🇮🇳 Gujarati · Hindi · Kannada · Kashmiri</div>
+            <div class="coming-soon-item">🇮🇳 Konkani · Maithili · Malayalam · Manipuri</div>
+            <div class="coming-soon-item">🇮🇳 Marathi · Nepali · Odia · Punjabi</div>
+            <div class="coming-soon-item">🇮🇳 Sanskrit · Santali · Sindhi · Tamil · Telugu · Urdu</div>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-200)">
+            <span style="font-size:12px;color:var(--gray-500)">Better Health in Every Language →</span>
+            <i data-lucide="trending-up" style="width:16px;height:16px;color:var(--lime)"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    // Translation data
+    const translations = {
+      en: {
+        greeting: "Hello! I'm your AI health companion. How can I help you today?",
+        question: "I have been feeling tired lately. What should I do?",
+        response: "Persistent fatigue can have many causes. Let me ask a few questions to help you better..."
+      },
+      hi: {
+        greeting: "नमस्ते! मैं आपका AI स्वास्थ्य सहायक हूं। आज मैं आपकी कैसे मदद कर सकता हूं?",
+        question: "मुझे पिछले कुछ समय से थकान महसूस हो रही है। मुझे क्या करना चाहिए?",
+        response: "लगातार थकान के कई कारण हो सकते हैं। मुझे आपको बेहतर मदद करने के लिए कुछ सवाल पूछने दीजिए..."
+      },
+      or: {
+        greeting: "ନମସ୍କାର! ମୁଁ ଆପଣଙ୍କର AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ। ଆଜି ମୁଁ ଆପଣଙ୍କୁ କିଭଳି ସାହାଯ୍ୟ କରିପାରିବି?",
+        question: "ମୁଁ ପଶ୍ଚିମକାଳରୁ ଥକ୍କା ଅନୁଭବ କରୁଅଛି। ମୁଁ କଣ କରିବି?",
+        response: "ନିରନ୍ତର ଥକ୍କାର ଅନେକ କାରଣ ହୋଇପାରେ। ଆପଣଙ୍କୁ ଭଲ ସାହାଯ୍ୟ କରିବା ପାଇଁ ମୋତେ କିଛି ପ୍ରଶ୍ନ ପଚାରନ୍ତୁ..."
+      },
+      es: {
+        greeting: "¡Hola! Soy tu compañero de salud AI. ¿Cómo puedo ayudarte hoy?",
+        question: "He estado sintiéndome cansado últimamente. ¿Qué debo hacer?",
+        response: "La fatiga persistente puede tener muchas causas. Déjame hacer algunas preguntas para ayudarte mejor..."
+      },
+      fr: {
+        greeting: "Bonjour! Je suis votre compagnon santé IA. Comment puis-je vous aider aujourd'hui?",
+        question: "Je me sens fatigué ces derniers temps. Que dois-je faire?",
+        response: "La fatigue persistante peut avoir de nombreuses causes. Laissez-moi vous poser quelques questions..."
+      }
+    };
+
+    async function loadSupportedLanguageCards() {
+      const response = await fetch('/api/languages');
+      const data = await response.json();
+      const languages = data.supported || [];
+      const selected = localStorage.getItem('orbix-language') || 'en';
+      document.getElementById('langGrid').innerHTML = languages.map(language => `
+        <div class="lang-card ${language.code === selected ? 'active' : ''}" data-lang="${language.code}">
+          ${language.code === selected ? '<div class="lang-check"><i data-lucide="check" style="width:12px;height:12px"></i></div>' : ''}
+          <div class="lang-flag">${language.flag || '🇮🇳'}</div>
+          <div class="lang-name">${language.name}</div>
+          <div class="lang-native">(${language.native})</div>
+        </div>`).join('');
+      const count = document.querySelector('#langGrid')?.parentElement?.querySelectorAll('span')[1];
+      if (count) count.textContent = `${languages.length} supported languages`;
+      document.querySelectorAll('.lang-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.lang-card').forEach(item => item.classList.remove('active'));
+          card.classList.add('active');
+          localStorage.setItem('orbix-language', card.dataset.lang);
+          document.documentElement.lang = card.dataset.lang;
+          updatePreview(card.dataset.lang);
+          window.dispatchEvent(new CustomEvent('orbixLanguageChange', {detail: card.dataset.lang}));
+        });
+      });
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    loadSupportedLanguageCards().catch(error => console.error('Language list failed:', error));
+
+    // Preview buttons
+    document.querySelectorAll('[data-preview]').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('[data-preview]').forEach(b => {
+          b.style.background = '';
+          b.style.color = '';
+        });
+        this.style.background = 'var(--lime)';
+        this.style.color = 'var(--dark)';
+        updatePreview(this.dataset.preview);
+      });
+    });
+
+    function updatePreview(lang) {
+      const data = translations[lang] || translations.en;
+      document.getElementById('previewText1').textContent = data.greeting;
+      document.getElementById('previewText2').textContent = data.question;
+      document.getElementById('previewText3').textContent = data.response;
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    // Copy code button
+    document.getElementById('copyCode').addEventListener('click', function() {
+      const code = document.getElementById('translationCode').textContent;
+      navigator.clipboard.writeText(code).then(() => {
+        this.innerHTML = '<i data-lucide="check" style="width:12px;height:12px"></i> Copied!';
+        setTimeout(() => {
+          this.innerHTML = '<i data-lucide="copy" style="width:12px;height:12px"></i> Copy';
+        }, 2000);
+      });
+    });
+
+    // Initialize with English
+    updatePreview('en');
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+  </script>
+<script src="/static/js/main.js"></script>
+  <script>lucide.createIcons();</script>
+
+<script>
+(function() {
+  // Check auth status on all pages
+  fetch('/api/me', {credentials: 'include'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.user) {
+        // Logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        const dropdownName = document.getElementById('dropdownName');
+        const dropdownEmail = document.getElementById('dropdownEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (authButtons) authButtons.style.display = 'none';
+        if (userMenu) {
+          userMenu.style.display = 'block';
+          const name = (data.user.first_name || 'User').split(' ')[0];
+          if (userName) userName.textContent = name;
+          if (dropdownName) dropdownName.textContent = data.user.first_name + ' ' + (data.user.last_name || '');
+          if (dropdownEmail) dropdownEmail.textContent = data.user.email;
+          if (userAvatar) userAvatar.textContent = (data.user.first_name || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        // Not logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        if (authButtons) authButtons.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  
+  // User dropdown toggle
+  const menuBtn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+  }
+})();
+</script>
+
+</body>
+</html>

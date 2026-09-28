@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ArogyaX — AI Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <style>
+    .chat-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr 320px;
+      gap: 20px;
+      height: calc(100vh - 120px);
+    }
+    .chat-sidebar {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .chat-list-item {
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: var(--transition);
+      border: 1px solid transparent;
+    }
+    .chat-list-item:hover { background: var(--gray-100); }
+    .chat-list-item.active { background: var(--lime-light); border-color: var(--lime); }
+    .chat-list-item h4 { font-size: 13px; font-weight: 700; margin-bottom: 4px; }
+    .chat-list-item p { font-size: 11px; color: var(--gray-500); }
+    .chat-main {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .chat-input-area {
+      padding: 16px 20px;
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      gap: 12px;
+      align-items: flex-end;
+    }
+    .chat-input {
+      flex: 1;
+      padding: 12px 16px;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-pill);
+      font-size: 14px;
+      resize: none;
+      min-height: 48px;
+      max-height: 120px;
+      outline: none;
+      transition: var(--transition);
+    }
+    .chat-input:focus { border-color: var(--lime); }
+    .chat-send-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--dark);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .chat-send-btn:hover { transform: scale(1.05); }
+    .voice-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 20px 10px;
+      color: var(--gray-500);
+      font-size: 12px;
+    }
+    .voice-language {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-pill);
+      padding: 7px 28px 7px 10px;
+      background: #fff;
+      color: var(--dark);
+      font-size: 12px;
+      outline: none;
+    }
+    .voice-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--gray-200);
+      border-radius: 50%;
+      background: #fff;
+      color: var(--dark);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+    .voice-btn.is-listening { background: #FFE8E3; border-color: #F04E23; color: #F04E23; animation: voice-pulse 1.2s infinite; }
+    .voice-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .voice-status { min-height: 16px; }
+    .speak-btn { margin-left: 8px; border: 0; background: transparent; color: var(--gray-500); cursor: pointer; vertical-align: middle; }
+    @keyframes voice-pulse { 50% { box-shadow: 0 0 0 6px rgba(240, 78, 35, .16); } }
+    .chat-right-panel {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .profile-card {
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+    }
+    .profile-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--lime);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .symptom-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: var(--gray-100);
+      border-radius: var(--radius-pill);
+      font-size: 12px;
+      font-weight: 600;
+      margin: 4px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+    .symptom-tag:hover { background: var(--lime-light); }
+    .typing-indicator {
+      display: flex;
+      gap: 4px;
+      padding: 12px 16px;
+      background: var(--gray-100);
+      border-radius: 16px;
+      border-top-left-radius: 4px;
+      width: fit-content;
+    }
+    .typing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--gray-400);
+      animation: typing 1.4s infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typing {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-8px); }
+    }
+    @media (max-width: 1200px) {
+      .chat-layout { grid-template-columns: 1fr; }
+      .chat-sidebar, .chat-right-panel { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <!-- NAVBAR -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text"><h1>ArogyaX</h1><span>AI Chat</span></div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <button class="icon-btn"><i data-lucide="heart" style="width:16px;height:16px"></i></button>
+      <button class="icon-btn"><i data-lucide="sparkles" style="width:16px;height:16px"></i></button>
+      <button class="date-pill">
+        <i data-lucide="bell" style="width:14px;height:14px"></i>
+        <span>Sat, 26 Aug</span>
+        <span class="badge-count">5</span>
+      </button>
+      <div class="hamburger"><i data-lucide="menu" style="width:18px;height:18px"></i></div>
+    </div>
+  </nav>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <a href="/" class="sidebar-item" id="nav-home">
+      <i data-lucide="home"></i>
+      <span>Home</span>
+    </a>
+    <a href="/page/chat" class="sidebar-item active" id="nav-ai-chat">
+      <i data-lucide="message-circle"></i>
+      <span>AI Chat</span>
+    </a>
+    <a href="/page/analytics" class="sidebar-item" id="nav-analytics">
+      <i data-lucide="bar-chart-2"></i>
+      <span>Analytics</span>
+    </a>
+    <a href="/page/knowledge" class="sidebar-item" id="nav-knowledge">
+      <i data-lucide="book-open"></i>
+      <span>Knowledge</span>
+    </a>
+    <a href="/page/reports" class="sidebar-item" id="nav-reports">
+      <i data-lucide="file-text"></i>
+      <span>Reports</span>
+    </a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom">
+      <a href="/page/settings" class="sidebar-item" id="nav-settings">
+        <i data-lucide="settings"></i>
+        <span>Settings</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <div class="chat-layout">
+      <!-- Left: Conversation List -->
+      <div class="chat-sidebar">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <h3 style="font-size:16px;font-weight:800">Conversations</h3>
+          <button class="btn-lime" id="newConversationBtn" style="padding:8px 12px;font-size:12px">
+            <i data-lucide="plus" style="width:14px;height:14px"></i> New
+          </button>
+        </div>
+        <div id="conversationList" class="conversation-list"></div>
+      </div>
+
+      <!-- Center: Chat Area -->
+      <div class="chat-main">
+        <div class="chat-header">
+          <div class="chat-avatar bot" style="width:40px;height:40px;border-radius:50%;background:var(--lime);display:flex;align-items:center;justify-content:center">
+            <i data-lucide="bot" style="width:20px;height:20px"></i>
+          </div>
+          <div>
+            <h3 style="font-size:16px;font-weight:800">AI Health Companion</h3>
+            <p style="font-size:12px;color:var(--gray-500)">Powered by advanced health AI • Always here to help</p>
+          </div>
+          <div style="margin-left:auto"></div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+          <!-- Messages will be dynamically added -->
+        </div>
+
+        <div class="voice-tools" aria-live="polite">
+          <button class="voice-btn" id="voiceInputBtn" type="button" title="Speak your health question" aria-label="Speak your health question">
+            <i data-lucide="mic" style="width:17px;height:17px"></i>
+          </button>
+          <label for="voiceLanguage">Voice language</label>
+          <select class="voice-language" id="voiceLanguage" aria-label="Voice language"></select>
+          <span class="voice-status" id="voiceStatus">Tap the microphone to speak</span>
+        </div>
+
+        <div class="chat-input-area">
+          <button class="icon-btn"><i data-lucide="paperclip" style="width:16px;height:16px"></i></button>
+          <textarea class="chat-input" id="chatInput" placeholder="Type your message here..." rows="1"></textarea>
+          <button class="chat-send-btn" id="chatSendBtn">
+            <i data-lucide="send" style="width:20px;height:20px"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Right: Profile & Quick Actions -->
+      <div class="chat-right-panel">
+        <div class="profile-card">
+          <div class="profile-avatar" data-user-avatar>U</div>
+          <h4 style="font-size:16px;font-weight:800" data-user-name data-user-first-name>User</h4>
+          <p style="font-size:13px;color:var(--gray-500);margin-top:4px">Age <span data-user-age>-</span> • <span data-user-gender>-</span></p>
+          <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--gray-200)">
+            <p style="font-size:12px;font-weight:700;margin-bottom:8px">Recent Symptoms</p>
+            <div style="display:flex;flex-wrap:wrap;gap:4px">
+              <span class="symptom-tag">Headache</span>
+              <span class="symptom-tag">Fatigue</span>
+              <span class="symptom-tag">Insomnia</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-card">
+          <h4 style="font-size:14px;font-weight:800;margin-bottom:12px">Quick Actions</h4>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <button class="btn-outline" style="justify-content:flex-start;width:100%">
+              <i data-lucide="plus-circle" style="width:16px;height:16px"></i>
+              Log New Symptom
+            </button>
+            <button class="btn-outline" style="justify-content:flex-start;width:100%">
+              <i data-lucide="calendar" style="width:16px;height:16px"></i>
+              Book Appointment
+            </button>
+            <button class="btn-outline" style="justify-content:flex-start;width:100%">
+              <i data-lucide="file-text" style="width:16px;height:16px"></i>
+              View History
+            </button>
+          </div>
+        </div>
+
+        <div style="background:var(--lime-light);border-radius:var(--radius);padding:16px;border:1px solid var(--lime)">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <i data-lucide="info" style="width:16px;height:16px;color:var(--dark)"></i>
+            <span style="font-size:13px;font-weight:700">Health Tip</span>
+          </div>
+          <p style="font-size:12px;color:var(--gray-600);line-height:1.6">
+            Staying hydrated can help reduce headaches. Aim for 2-3 liters of water daily.
+          </p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const chatSendBtn = document.getElementById('chatSendBtn');
+    const conversationList = document.getElementById('conversationList');
+    const newConversationBtn = document.getElementById('newConversationBtn');
+
+    let currentConversationId = null;
+    let activeMessages = [];
+    let speechRecognition = null;
+    let isListening = false;
+    let availableSpeechVoices = [];
+    let speechQueue = [];
+    let speechPlaying = false;
+    let speechRunId = 0;
+
+    const voiceLanguageOptions = [
+      ['en', 'English'], ['as', 'অসমীয়া'], ['bn', 'বাংলা'], ['brx', 'बड़ो'],
+      ['doi', 'डोगरी'], ['gu', 'ગુજરાતી'], ['hi', 'हिन्दी'], ['kn', 'ಕನ್ನಡ'],
+      ['ks', 'कॉशुर'], ['kok', 'कोंकणी'], ['mai', 'मैथिली'], ['ml', 'മലയാളം'],
+      ['mni', 'মৈতৈলোন্'], ['mr', 'मराठी'], ['ne', 'नेपाली'], ['or', 'ଓଡ଼ିଆ'],
+      ['pa', 'ਪੰਜਾਬੀ'], ['sa', 'संस्कृतम्'], ['sat', 'ᱥᱟᱱᱛᱟᱲᱤ'], ['sd', 'سنڌي'],
+      ['ta', 'தமிழ்'], ['te', 'తెలుగు'], ['ur', 'اردو'], ['es', 'Español'], ['fr', 'Français']
+    ];
+
+    function getVoiceLocale(language) {
+      const locales = { en: 'en-IN', as: 'as-IN', bn: 'bn-IN', brx: 'brx-IN', doi: 'doi-IN', gu: 'gu-IN', hi: 'hi-IN', kn: 'kn-IN', ks: 'ks-IN', kok: 'kok-IN', mai: 'mai-IN', ml: 'ml-IN', mni: 'mni-IN', mr: 'mr-IN', ne: 'ne-NP', or: 'or-IN', pa: 'pa-IN', sa: 'sa-IN', sat: 'sat-IN', sd: 'sd-IN', ta: 'ta-IN', te: 'te-IN', ur: 'ur-IN', es: 'es-ES', fr: 'fr-FR' };
+      return locales[language] || 'en-IN';
+    }
+
+    function refreshSpeechVoices() {
+      if (!('speechSynthesis' in window)) return [];
+      availableSpeechVoices = window.speechSynthesis.getVoices() || [];
+      return availableSpeechVoices;
+    }
+
+    function findSpeechVoice(language) {
+      const locale = getVoiceLocale(language).toLowerCase();
+      const languageCode = locale.split('-')[0];
+      const voices = refreshSpeechVoices();
+      return voices.find(voice => voice.lang.toLowerCase() === locale)
+        || voices.find(voice => voice.lang.toLowerCase().startsWith(`${languageCode}-`))
+        || voices.find(voice => voice.default)
+        || voices[0]
+        || null;
+    }
+
+    function splitSpeechText(text) {
+      const cleanText = String(text || '')
+        .replace(/<[^>]*>/g, '')
+        .replace(/[\r\n]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (!cleanText) return [];
+      const sentences = cleanText.match(/.{1,180}(?:[.!?।॥]|$)/g) || [cleanText];
+      return sentences.map(sentence => sentence.trim()).filter(Boolean);
+    }
+
+    function updateSpeechStatus(message) {
+      const status = document.getElementById('voiceStatus');
+      if (status) status.textContent = message;
+    }
+
+    function playNextSpeechChunk(language, runId) {
+      if (runId !== speechRunId) return;
+      if (!speechQueue.length) {
+        speechPlaying = false;
+        updateSpeechStatus('Tap the speaker button to hear an answer');
+        return;
+      }
+
+      speechPlaying = true;
+      const text = speechQueue.shift();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const voice = findSpeechVoice(language);
+      utterance.lang = voice?.lang || getVoiceLocale(language);
+      if (voice) utterance.voice = voice;
+      utterance.rate = 0.92;
+      utterance.pitch = 1;
+      utterance.volume = 1;
+      utterance.onend = () => playNextSpeechChunk(language, runId);
+      utterance.onerror = (event) => {
+        if (runId !== speechRunId) return;
+        console.warn('Speech synthesis failed:', event.error);
+        speechPlaying = false;
+        speechQueue = [];
+        updateSpeechStatus('Speech playback failed. Tap the speaker to retry');
+      };
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function speakReply(text, language) {
+      if (!('speechSynthesis' in window) || !text) {
+        updateSpeechStatus('Text-to-speech is not supported in this browser');
+        return false;
+      }
+      const runId = ++speechRunId;
+      speechQueue = splitSpeechText(text);
+      if (!speechQueue.length) return false;
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.resume();
+      updateSpeechStatus('Reading the AI answer aloud...');
+      window.setTimeout(() => playNextSpeechChunk(language, runId), 80);
+      return true;
+    }
+
+    function initVoiceAssistant() {
+      const voiceButton = document.getElementById('voiceInputBtn');
+      const voiceLanguage = document.getElementById('voiceLanguage');
+      const voiceStatus = document.getElementById('voiceStatus');
+      if (!voiceButton || !voiceLanguage) return;
+
+      voiceLanguage.innerHTML = voiceLanguageOptions.map(([code, label]) => `<option value="${code}">${label}</option>`).join('');
+      voiceLanguage.value = localStorage.getItem('orbix-language') || 'en';
+      if ('speechSynthesis' in window) {
+        refreshSpeechVoices();
+        window.speechSynthesis.addEventListener('voiceschanged', refreshSpeechVoices);
+      }
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Recognition) {
+        voiceButton.disabled = true;
+        voiceStatus.textContent = 'Voice input is not supported in this browser';
+        return;
+      }
+
+      speechRecognition = new Recognition();
+      speechRecognition.continuous = false;
+      speechRecognition.interimResults = false;
+      speechRecognition.maxAlternatives = 1;
+      speechRecognition.onstart = () => {
+        isListening = true;
+        voiceButton.classList.add('is-listening');
+        voiceStatus.textContent = 'Listening... speak your health question';
+      };
+      speechRecognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript.trim();
+        if (transcript) {
+          chatInput.value = transcript;
+          chatInput.dispatchEvent(new Event('input'));
+          sendMessage();
+        }
+      };
+      speechRecognition.onerror = (event) => {
+        voiceStatus.textContent = event.error === 'not-allowed' ? 'Microphone permission is required' : 'Could not hear that. Please try again';
+      };
+      speechRecognition.onend = () => {
+        isListening = false;
+        voiceButton.classList.remove('is-listening');
+        if (!voiceStatus.textContent.includes('permission')) voiceStatus.textContent = 'Tap the microphone to speak';
+      };
+      voiceButton.addEventListener('click', () => {
+        if (isListening) {
+          speechRecognition.stop();
+          return;
+        }
+        speechRecognition.lang = getVoiceLocale(voiceLanguage.value);
+        voiceStatus.textContent = 'Starting microphone...';
+        speechRecognition.start();
+      });
+      voiceLanguage.addEventListener('change', () => {
+        localStorage.setItem('orbix-language', voiceLanguage.value);
+        updateInputLanguage();
+      });
+      window.addEventListener('orbixLanguageChange', () => {
+        const selectedLanguage = localStorage.getItem('orbix-language') || 'en';
+        if (voiceLanguageOptions.some(([code]) => code === selectedLanguage)) voiceLanguage.value = selectedLanguage;
+      });
+    }
+
+    function getWelcomeText() {
+      const firstName = document.querySelector('[data-user-first-name]')?.textContent || 'there';
+      const language = localStorage.getItem('orbix-language') || 'en';
+      const welcome = {
+        en: `Hello ${firstName}! 👋 I\'m your AI health companion. How can I help you today?`,
+        hi: `नमस्ते ${firstName}! 👋 मैं आपका AI स्वास्थ्य सहायक हूँ। आज मैं आपकी कैसे मदद कर सकता हूँ?`,
+        or: `ନମସ୍କାର ${firstName}! 👋 ମୁଁ ଆପଣଙ୍କ AI ସ୍ୱାସ୍ଥ୍ୟ ସହାୟକ। ଆଜି ମୁଁ କିପରି ସାହାଯ୍ୟ କରିପାରିବି?`,
+        es: `¡Hola ${firstName}! 👋 Soy tu asistente de salud con IA. ¿Cómo puedo ayudarte hoy?`,
+        fr: `Bonjour ${firstName} ! 👋 Je suis votre assistant santé IA. Comment puis-je vous aider aujourd’hui ?`
+      };
+      return welcome[language] || welcome.en;
+    }
+
+    function cleanRenderedText(text) {
+      return String(text || '')
+        .replace(/\*\*(.*?)\*\*/g, '$1')
+        .replace(/__(.*?)__/g, '$1')
+        .replace(/(?<!\*)\*(?!\*)/g, '')
+        .replace(/^#+\s*/gm, '')
+        .replace(/^\s*[-*]\s+/gm, '• ')
+        .replace(/`/g, '')
+        .trim();
+    }
+
+    let inputTranslationTimer = null;
+    let inputTranslationRequest = 0;
+    async function translateInputWhileTyping() {
+      const language = localStorage.getItem('orbix-language') || 'en';
+      const typed = chatInput.value.trim();
+      if (!typed || language === 'en' || typed === chatInput.dataset.translatedText) return;
+      const requestId = ++inputTranslationRequest;
+      chatInput.dataset.translationStatus = 'translating';
+      try {
+        const response = await fetch('/api/translate-text', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          credentials: 'include',
+          body: JSON.stringify({text: typed, language})
+        });
+        if (!response.ok) throw new Error('Translation request failed');
+        const data = await response.json();
+        if (requestId !== inputTranslationRequest || chatInput.value.trim() !== typed) return;
+        const translated = data.translated || typed;
+        if (translated !== typed) {
+          chatInput.value = translated;
+          chatInput.dataset.translatedText = translated;
+          chatInput.setSelectionRange(translated.length, translated.length);
+        }
+      } catch (error) {
+        console.error('Input translation failed:', error);
+      } finally {
+        if (requestId === inputTranslationRequest) chatInput.dataset.translationStatus = 'idle';
+      }
+    }
+
+    function updateInputLanguage() {
+      const language = localStorage.getItem('orbix-language') || 'en';
+      const placeholders = {
+        en: 'Type your message here...',
+        hi: 'अपनी समस्या यहाँ लिखें...',
+        or: 'ଆପଣଙ୍କ ସମସ୍ୟା ଏଠାରେ ଲେଖନ୍ତୁ...',
+        bn: 'আপনার সমস্যা এখানে লিখুন...',
+        ta: 'உங்கள் பிரச்சனையை இங்கே எழுதுங்கள்...',
+        te: 'మీ సమస్యను ఇక్కడ వ్రాయండి...'
+      };
+      chatInput.placeholder = placeholders[language] || 'अपनी समस्या यहाँ लिखें...';
+    }
+
+    function addBotMessage(text, language = localStorage.getItem('orbix-language') || 'en') {
+      const cleanText = cleanRenderedText(text);
+      const msg = document.createElement('div');
+      msg.className = 'chat-msg bot animate-in';
+      msg.innerHTML = `
+        <div class="chat-avatar bot"><i data-lucide="bot" style="width:16px;height:16px"></i></div>
+        <div class="chat-bubble">${cleanText}<button class="speak-btn" type="button" title="Read this answer aloud" aria-label="Read this answer aloud"><i data-lucide="volume-2" style="width:15px;height:15px"></i></button></div>
+      `;
+      chatMessages.appendChild(msg);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      msg.querySelector('.speak-btn')?.addEventListener('click', () => speakReply(cleanText, language));
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return msg;
+    }
+
+    function addUserMessage(text) {
+      const cleanText = cleanRenderedText(text);
+      const msg = document.createElement('div');
+      msg.className = 'chat-msg user animate-in';
+      msg.innerHTML = `
+        <div class="chat-avatar user-avatar" data-user-avatar>U</div>
+        <div class="chat-bubble">${cleanText}</div>
+      `;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function renderMessages(messages) {
+      chatMessages.innerHTML = '';
+      messages.forEach((entry) => {
+        if (!entry || !entry.text) return;
+        if (entry.role === 'user') {
+          addUserMessage(entry.text);
+        } else {
+          addBotMessage(entry.text);
+        }
+      });
+      if (!messages.length) {
+        addBotMessage(getWelcomeText());
+      }
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTyping() {
+      const typing = document.createElement('div');
+      typing.className = 'chat-msg bot';
+      typing.id = 'typingIndicator';
+      typing.innerHTML = `
+        <div class="chat-avatar bot"><i data-lucide="bot" style="width:16px;height:16px"></i></div>
+        <div class="typing-indicator">
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+          <div class="typing-dot"></div>
+        </div>
+      `;
+      chatMessages.appendChild(typing);
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function removeTyping() {
+      const typing = document.getElementById('typingIndicator');
+      if (typing) typing.remove();
+    }
+
+    function summarizeTitle(messages) {
+      const lastUserMessage = [...messages].reverse().find((entry) => entry.role === 'user');
+      if (!lastUserMessage || !lastUserMessage.text) return 'New conversation';
+      return lastUserMessage.text.replace(/\s+/g, ' ').trim().slice(0, 32) || 'New conversation';
+    }
+
+    function formatConversationLabel(updatedAt) {
+      if (!updatedAt) return 'Today';
+      const date = new Date(updatedAt);
+      if (Number.isNaN(date.getTime())) return 'Today';
+      const diffHours = (Date.now() - date.getTime()) / 3600000;
+      if (diffHours < 24) return 'Today';
+      if (diffHours < 48) return 'Yesterday';
+      return `${Math.max(2, Math.floor(diffHours / 24))} days ago`;
+    }
+
+    function renderConversationList(conversations) {
+      if (!conversationList) return;
+      conversationList.innerHTML = '';
+
+      if (!conversations.length) {
+        const empty = document.createElement('div');
+        empty.className = 'chat-list-item';
+        empty.innerHTML = '<p style="padding:12px 0 0; color: var(--gray-500);">No saved conversations yet</p>';
+        conversationList.appendChild(empty);
+        return;
+      }
+
+      conversations.forEach((conversation) => {
+        const item = document.createElement('button');
+        item.type = 'button';
+        item.className = 'chat-list-item' + (conversation.id === currentConversationId ? ' active' : '');
+        item.dataset.conversationId = conversation.id;
+        item.innerHTML = `
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <i data-lucide="${conversation.id === currentConversationId ? 'message-circle' : 'clock'}" style="width:16px;height:16px;color:${conversation.id === currentConversationId ? 'var(--lime)' : 'var(--gray-400)'}"></i>
+            <span style="font-size:11px;color:var(--gray-500)">${formatConversationLabel(conversation.updated_at)}</span>
+          </div>
+          <h4>${(conversation.title || 'New conversation').slice(0, 28)}</h4>
+          <p>${(conversation.messages?.slice(-1)[0]?.text || 'No messages yet').replace(/<[^>]*>/g, '').slice(0, 42)}</p>
+        `;
+        item.addEventListener('click', async () => {
+          currentConversationId = conversation.id;
+          const response = await fetch(`/api/conversations/${conversation.id}`, {credentials: 'include'});
+          const data = await response.json();
+          if (response.ok && data.conversation) {
+            activeMessages = data.conversation.messages || [];
+            renderMessages(activeMessages);
+          }
+          renderConversationList(conversations);
+        });
+        conversationList.appendChild(item);
+      });
+
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    async function loadConversations() {
+      const response = await fetch('/api/conversations', {credentials: 'include'});
+      if (!response.ok) return;
+      const data = await response.json();
+      const conversations = Array.isArray(data.conversations) ? data.conversations : [];
+      renderConversationList(conversations);
+      if (conversations.length && !currentConversationId) {
+        currentConversationId = conversations[0].id;
+        activeMessages = conversations[0].messages || [];
+        renderMessages(activeMessages);
+      }
+      if (!conversations.length) {
+        currentConversationId = null;
+        activeMessages = [];
+        renderMessages([]);
+      }
+    }
+
+    async function saveCurrentConversation() {
+      if (!currentConversationId) {
+        currentConversationId = `chat-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      }
+
+      const title = summarizeTitle(activeMessages);
+      const payload = {
+        conversation_id: currentConversationId,
+        title,
+        messages: activeMessages
+      };
+
+      const response = await fetch('/api/conversations', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        credentials: 'include',
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) return null;
+      const data = await response.json();
+      if (data.conversation) {
+        currentConversationId = data.conversation.id;
+        activeMessages = data.conversation.messages || [];
+        await loadConversations();
+        return data.conversation;
+      }
+      return null;
+    }
+
+    async function sendMessage() {
+      const message = chatInput.value.trim();
+      if (!message) return;
+
+      const newMessage = { role: 'user', text: message, original_text: message, timestamp: new Date().toISOString() };
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      showTyping();
+
+      try {
+        const result = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          credentials: 'include',
+          body: JSON.stringify({message, language: localStorage.getItem('orbix-language') || 'en'})
+        });
+        const data = await result.json();
+        if (!result.ok) throw new Error(data.message || 'Chat request failed');
+
+        const displayedMessage = data.translated_message || message;
+        newMessage.text = displayedMessage;
+        activeMessages = [...activeMessages, newMessage];
+        addUserMessage(displayedMessage);
+        const replyText = data.reply || 'I’m here to help.';
+        const botMessage = { role: 'bot', text: replyText, timestamp: new Date().toISOString() };
+        activeMessages = [...activeMessages, botMessage];
+
+        removeTyping();
+        const replyLanguage = data.language || localStorage.getItem('orbix-language') || 'en';
+        addBotMessage(replyText, replyLanguage);
+        speakReply(replyText, replyLanguage);
+        if (data.level && data.level !== 'Normal') {
+          const levelBadge = document.createElement('div');
+          levelBadge.className = `lime-pill ${data.level === 'Urgent' ? 'red-pill' : 'orange-pill'}`;
+          levelBadge.textContent = `Concern: ${data.level}`;
+          chatMessages.appendChild(levelBadge);
+        }
+
+        await saveCurrentConversation();
+      } catch (error) {
+        removeTyping();
+        const fallback = 'I could not connect to the health assistant right now. Please try again.';
+        activeMessages = [...activeMessages, { role: 'user', text: message, original_text: message, timestamp: new Date().toISOString() }];
+        addUserMessage(message);
+        activeMessages = [...activeMessages, { role: 'bot', text: fallback, timestamp: new Date().toISOString() }];
+        await saveCurrentConversation();
+        console.error(error);
+      }
+
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatSendBtn.addEventListener('click', sendMessage);
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+      clearTimeout(inputTranslationTimer);
+      chatInput.dataset.translatedText = '';
+      inputTranslationRequest += 1;
+      inputTranslationTimer = setTimeout(translateInputWhileTyping, 600);
+    });
+
+    window.addEventListener('orbixLanguageChange', updateInputLanguage);
+    updateInputLanguage();
+
+    newConversationBtn.addEventListener('click', async () => {
+      currentConversationId = null;
+      activeMessages = [];
+      renderMessages([]);
+      await loadConversations();
+    });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      await loadConversations();
+      if (!currentConversationId) {
+        renderMessages([]);
+      }
+      initVoiceAssistant();
+    });
+  </script>
+<script src="/static/js/main.js"></script>
+<script src="/static/js/family.js"></script>
+  <script>lucide.createIcons();</script>
+
+<script>
+(function() {
+  // Check auth status on all pages
+  fetch('/api/me', {credentials: 'include'})
+    .then(r => r.json())
+    .then(data => {
+      if (data.user) {
+        // Logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        const userName = document.getElementById('userName');
+        const dropdownName = document.getElementById('dropdownName');
+        const dropdownEmail = document.getElementById('dropdownEmail');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (authButtons) authButtons.style.display = 'none';
+        if (userMenu) {
+          userMenu.style.display = 'block';
+          const name = (data.user.first_name || 'User').split(' ')[0];
+          if (userName) userName.textContent = name;
+          if (dropdownName) dropdownName.textContent = data.user.first_name + ' ' + (data.user.last_name || '');
+          if (dropdownEmail) dropdownEmail.textContent = data.user.email;
+          if (userAvatar) userAvatar.textContent = (data.user.first_name || 'U').charAt(0).toUpperCase();
+        }
+      } else {
+        // Not logged in
+        const authButtons = document.getElementById('authButtons');
+        const userMenu = document.getElementById('userMenu');
+        if (authButtons) authButtons.style.display = 'flex';
+        if (userMenu) userMenu.style.display = 'none';
+      }
+    })
+    .catch(() => {});
+  
+  // User dropdown toggle
+  const menuBtn = document.getElementById('userMenuBtn');
+  const dropdown = document.getElementById('userDropdown');
+  if (menuBtn && dropdown) {
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+    });
+    document.addEventListener('click', () => { dropdown.style.display = 'none'; });
+    dropdown.addEventListener('click', e => e.stopPropagation());
+  }
+})();
+</script>
+
+</body>
+</html>

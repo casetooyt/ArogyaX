@@ -1,0 +1,33 @@
+<!-- orbix/static/img/body-diagram.svg -->
+<!-- Reusable anatomical body diagram for the dB card -->
+<svg viewBox="0 0 120 260" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Head -->
+  <circle cx="60" cy="22" r="16" stroke="#101820" stroke-width="1.5" fill="none"/>
+  <!-- Spine -->
+  <line x1="60" y1="38" x2="60" y2="140" stroke="#101820" stroke-width="1.5"/>
+  <!-- Shoulders / Arms -->
+  <line x1="60" y1="58" x2="20" y2="110" stroke="#101820" stroke-width="1.5"/>
+  <line x1="20" y1="110" x2="12" y2="160" stroke="#101820" stroke-width="1.5"/>
+  <line x1="60" y1="58" x2="100" y2="110" stroke="#101820" stroke-width="1.5"/>
+  <line x1="100" y1="110" x2="108" y2="160" stroke="#101820" stroke-width="1.5"/>
+  <!-- Ribcage -->
+  <ellipse cx="60" cy="80" rx="26" ry="22" stroke="#101820" stroke-width="1.5" fill="none"/>
+  <!-- Pelvis -->
+  <path d="M40 140 L60 155 L80 140" stroke="#101820" stroke-width="1.5" fill="none"/>
+  <!-- Left Leg -->
+  <line x1="44" y1="152" x2="38" y2="210" stroke="#101820" stroke-width="1.5"/>
+  <line x1="38" y1="210" x2="34" y2="252" stroke="#101820" stroke-width="1.5"/>
+  <!-- Right Leg -->
+  <line x1="76" y1="152" x2="82" y2="210" stroke="#101820" stroke-width="1.5"/>
+  <line x1="82" y1="210" x2="86" y2="252" stroke="#101820" stroke-width="1.5"/>
+  <!-- Muscle accent lines -->
+  <path d="M44 68 Q60 78 76 68" stroke="#101820" stroke-width="1" fill="none" opacity=".5"/>
+  <path d="M44 92 Q60 100 76 92" stroke="#101820" stroke-width="1" fill="none" opacity=".5"/>
+  <!-- Joint dots (lime) -->
+  <circle cx="20" cy="110" r="3" fill="#D4F547" stroke="#101820" stroke-width="1"/>
+  <circle cx="100" cy="110" r="3" fill="#D4F547" stroke="#101820" stroke-width="1"/>
+  <circle cx="38" cy="210" r="3" fill="#D4F547" stroke="#101820" stroke-width="1"/>
+  <circle cx="82" cy="210" r="3" fill="#D4F547" stroke="#101820" stroke-width="1"/>
+  <!-- Heart dot (orange) -->
+  <circle cx="60" cy="80" r="4" fill="#F04E23" stroke="#101820" stroke-width="1"/>
+</svg>

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Consult a Doctor — ArogyaX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <link rel="stylesheet" href="/static/css/shared.css" />
+  <link rel="stylesheet" href="/static/css/consult.css" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="/" class="brand">
+        <div class="brand-logo" aria-label="ArogyaX logo"><i data-lucide="activity"></i></div>
+        <div class="brand-text"><h1>ArogyaX</h1><span>Health Platform</span></div>
+      </a>
+    </div>
+    <div class="nav-right">
+      <a href="/page/care" class="btn-outline consult-care-link">Care Hub</a>
+      <a href="/auth/profile" class="icon-btn" title="My profile" aria-label="My profile"><i data-lucide="user-round"></i></a>
+    </div>
+  </nav>
+
+  <aside class="sidebar" aria-label="Main navigation">
+    <a href="/" class="sidebar-item" id="nav-home"><i data-lucide="home"></i><span>Home</span></a>
+    <a href="/page/chat" class="sidebar-item" id="nav-ai-chat"><i data-lucide="message-circle"></i><span>AI Chat</span></a>
+    <a href="/page/analytics" class="sidebar-item" id="nav-analytics"><i data-lucide="chart-no-axes-column-increasing"></i><span>Analytics</span></a>
+    <a href="/page/reports" class="sidebar-item" id="nav-reports"><i data-lucide="file-text"></i><span>Reports</span></a>
+    <a href="/page/care" class="sidebar-item" id="nav-care"><i data-lucide="heart-handshake"></i><span>Care Hub</span></a>
+    <a href="/page/consult" class="sidebar-item active" id="nav-consult" aria-current="page"><i data-lucide="stethoscope"></i><span>Consult</span></a>
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-bottom"><a href="/page/settings" class="sidebar-item" id="nav-settings"><i data-lucide="settings"></i><span>Settings</span></a></div>
+  </aside>
+
+  <main class="main-content consult-main">
+    <header class="consult-heading">
+      <div>
+        <p class="consult-eyebrow">DOCTOR CONSULTATION</p>
+        <h1>Consult a Doctor</h1>
+        <p class="consult-intro">Speak with a care professional from home. Choose a video or voice session.</p>
+      </div>
+      <a class="consult-back-link" href="/">Back to dashboard</a>
+    </header>
+
+    <section class="doctor-card" aria-labelledby="doctorName">
+      <div class="doctor-profile">
+        <div class="doctor-avatar" id="selectedDoctorAvatar" aria-hidden="true">...</div>
+        <div class="doctor-details">
+          <div class="doctor-name-row">
+            <h2 id="doctorName">Loading doctors...</h2>
+            <span class="availability" id="doctorAvailability"><span class="availability-dot"></span><span>Loading availability</span></span>
+          </div>
+          <p class="doctor-specialty" id="doctorSpecialty">Choose a doctor from the directory below.</p>
+          <p class="doctor-facility"><i data-lucide="map-pin" aria-hidden="true"></i><span id="doctorFacility">Loading provider details</span></p>
+          <p class="doctor-language" id="doctorMeta"><i data-lucide="briefcase-medical" aria-hidden="true"></i><span></span></p>
+        </div>
+      </div>
+      <div class="doctor-actions">
+        <button type="button" class="consult-action consult-action-primary" data-call-type="video">
+          <i data-lucide="video" aria-hidden="true"></i><span>Video Call</span>
+        </button>
+        <button type="button" class="consult-action consult-action-secondary" data-call-type="voice">
+          <i data-lucide="phone" aria-hidden="true"></i><span>Voice Call</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="directory-section" aria-labelledby="directoryHeading">
+      <div class="directory-heading">
+        <div><h2 id="directoryHeading">Find a doctor</h2><p>Browse providers by specialty or search by name and facility.</p></div>
+        <span class="directory-count" id="doctorCount">Loading directory</span>
+      </div>
+      <div class="directory-controls">
+        <label class="directory-search">Search doctors<input id="doctorSearch" type="search" autocomplete="off" placeholder="Name, specialty, or hospital" /></label>
+        <label class="directory-filter">Specialty<select id="specialtyFilter"><option value="all">All specialties</option></select></label>
+      </div>
+      <div class="doctor-directory" id="doctorDirectory" aria-live="polite"><p class="directory-empty">Loading doctor directory...</p></div>
+      <p class="directory-demo-note"><i data-lucide="info" aria-hidden="true"></i>Provider names and availability are sample directory data for this prototype. Confirm care details with a local facility.</p>
+    </section>
+
+    <p class="consult-prototype-note"><i data-lucide="info" aria-hidden="true"></i>The call screen is a prototype placeholder. No remote doctor is connected; calls use your device camera or microphone only.</p>
+
+    <div id="consultToast" class="consult-toast" role="status" aria-live="polite" hidden></div>
+  </main>
+
+  <section id="callOverlay" class="call-overlay" role="dialog" aria-modal="true" aria-labelledby="callDoctorName" aria-describedby="callStatusText" tabindex="-1" hidden>
+    <div class="call-layout">
+      <header class="call-header">
+        <a class="call-brand" href="/" aria-label="Return to dashboard"><span class="call-brand-mark"><i data-lucide="activity"></i></span><span>ArogyaX <small>Care call</small></span></a>
+        <div class="call-status" id="callStatus" data-state="connecting"><span class="call-status-dot"></span><span id="callStatusText">Preparing your call</span></div>
+        <button type="button" class="call-close" id="closeCallButton" aria-label="Close call"><i data-lucide="x"></i></button>
+      </header>
+
+      <main class="call-stage">
+        <div class="doctor-presence" id="doctorPresence">
+          <div class="doctor-avatar doctor-avatar-large" aria-hidden="true">MD</div>
+          <h2 id="callDoctorName">Dr. Meera Das</h2>
+          <p id="callModeLabel">General Physician · Video consultation</p>
+          <div class="audio-pulse" id="audioPulse" aria-hidden="true"><span></span><span></span><span></span></div>
+        </div>
+
+        <div class="permission-message" id="permissionMessage" role="alert" hidden>
+          <i data-lucide="shield-alert" aria-hidden="true"></i>
+          <div><strong>Device permission needed</strong><p id="permissionText"></p></div>
+          <div class="permission-actions"><button type="button" class="permission-retry" id="retryPermissionButton">Try again</button><button type="button" class="permission-close" id="closePermissionButton">Close call</button></div>
+        </div>
+
+        <div class="self-video" id="selfVideoBox" hidden>
+          <video id="selfVideo" autoplay playsinline muted></video>
+          <span><i data-lucide="user-round" aria-hidden="true"></i>You</span>
+        </div>
+      </main>
+
+      <footer class="call-footer">
+        <div class="call-session-info"><strong id="callTimer">00:00</strong><span id="callTypeText">Video call</span></div>
+        <div class="call-controls" aria-label="Call controls">
+          <button type="button" class="call-control" id="microphoneButton" aria-pressed="false" aria-label="Mute microphone"><i data-lucide="mic"></i><span>Mute</span></button>
+          <button type="button" class="call-control" id="cameraButton" aria-pressed="false" aria-label="Turn camera off"><i data-lucide="video"></i><span>Camera</span></button>
+          <button type="button" class="call-control call-control-end" id="endCallButton"><i data-lucide="phone-off" aria-hidden="true"></i><span>End Call</span></button>
+        </div>
+        <p class="call-disclaimer">Prototype call · This session is not connected to a live doctor.</p>
+      </footer>
+    </div>
+  </section>
+
+  <script src="/static/js/main.js"></script>
+  <script src="/static/js/family.js"></script>
+  <script src="/static/js/consult.js"></script>
+  <script>if (window.lucide) lucide.createIcons();</script>
+</body>
+</html>
